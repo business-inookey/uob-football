@@ -1,0 +1,15 @@
+"use client";
+import * as React from "react";
+
+type StackProps = React.PropsWithChildren<{
+  as?: keyof JSX.IntrinsicElements;
+  gap?: string;
+  className?: string;
+}>;
+
+export function Stack({ as = "div", gap = "gap-3", className = "", children }: StackProps) {
+  const Comp: any = as;
+  return <Comp className={`flex flex-col ${gap} ${className}`}>{children}</Comp>;
+}
+
+
