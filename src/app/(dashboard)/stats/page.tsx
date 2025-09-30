@@ -3,15 +3,31 @@ import { createClient } from "@/lib/supabase/server";
 import PlayerStatCard from "@/components/StatsEntry";
 
 async function getTeams() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/teams`, { cache: 'no-store' })
-  if (!res.ok) return []
-  return res.json()
+  const supabase = await createClient();
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('code, name')
+    .order('code');
+  return teams || [];
 }
 
 async function getPlayers(teamCode: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/players?team=${teamCode}`, { cache: 'no-store' })
-  if (!res.ok) return []
-  return res.json()
+  const supabase = await createClient();
+  
+  if (teamCode === 'all') {
+    const { data: players } = await supabase
+      .from('players')
+      .select('id, full_name, primary_position, current_team')
+      .order('full_name');
+    return players || [];
+  } else {
+    const { data: players } = await supabase
+      .from('players')
+      .select('id, full_name, primary_position, current_team')
+      .eq('current_team', teamCode)
+      .order('full_name');
+    return players || [];
+  }
 }
 
 async function getStatDefinitions() {

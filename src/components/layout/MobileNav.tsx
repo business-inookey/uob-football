@@ -14,6 +14,8 @@ const links = [
   { href: "/weights", label: "Weights", icon: "⚖️" },
   { href: "/games", label: "Games", icon: "⚽" },
   { href: "/video", label: "Video", icon: "🎥" },
+  { href: "/stopwatch", label: "Stopwatch", icon: "⏱️" },
+  { href: "/notes", label: "Notes", icon: "📝" },
 ];
 
 export default function MobileNav() {

@@ -4,6 +4,7 @@ import { z } from 'zod'
 const VideoAssetPayload = z.object({
   id: z.string().uuid().optional(),
   team: z.string().min(1), // team code
+  team2: z.string().min(1).optional(), // optional second team code
   title: z.string().min(1),
   url: z.string().url(),
   provider: z.string().default('veo3'),
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const supabase = await createClient()
+  const serviceSupabase = await createServiceClient()
   const body = await request.json().catch(() => null)
   const parsed = VideoAssetPayload.safeParse(body)
   if (!parsed.success) return new Response('Invalid payload', { status: 400 })
@@ -53,8 +55,8 @@ export async function POST(request: Request) {
   const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single()
   if (!profile) return new Response('Profile not found', { status: 404 })
 
-  // Resolve team code to id
-  const { data: team } = await supabase.from('teams').select('id').eq('code', parsed.data.team).single()
+  // Resolve team code to id using service client
+  const { data: team } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team).single()
   if (!team) return new Response('Invalid team code', { status: 400 })
 
   // Validate URL format
@@ -76,23 +78,55 @@ export async function POST(request: Request) {
       })
       .eq('id', parsed.data.id)
     if (error) return new Response(error.message, { status: 400 })
+    // If team2 provided on update, insert a second record for team2 (best-effort)
+    if (parsed.data.team2 && parsed.data.team2 !== parsed.data.team) {
+      const { data: t2 } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team2).maybeSingle()
+      if (t2) {
+        await serviceSupabase
+          .from('video_assets')
+          .insert({
+            team_id: t2.id,
+            title: parsed.data.title,
+            url: parsed.data.url,
+            provider: parsed.data.provider,
+            meta: parsed.data.meta,
+            created_by: profile.id,
+          })
+      }
+    }
     return Response.json({ ok: true, id: parsed.data.id })
   } else {
     // Insert
-    const { data, error } = await supabase
-      .from('video_assets')
-      .insert({
+    const rows: any[] = [
+      {
         team_id: team.id,
         title: parsed.data.title,
         url: parsed.data.url,
         provider: parsed.data.provider,
         meta: parsed.data.meta,
         created_by: profile.id,
-      })
+      },
+    ]
+    if (parsed.data.team2 && parsed.data.team2 !== parsed.data.team) {
+      const { data: t2 } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team2).maybeSingle()
+      if (t2) {
+        rows.push({
+          team_id: t2.id,
+          title: parsed.data.title,
+          url: parsed.data.url,
+          provider: parsed.data.provider,
+          meta: parsed.data.meta,
+          created_by: profile.id,
+        })
+      }
+    }
+    const { data, error } = await serviceSupabase
+      .from('video_assets')
+      .insert(rows)
       .select('id')
-      .single()
     if (error) return new Response(error.message, { status: 400 })
-    return Response.json({ ok: true, id: data!.id })
+    const ids = Array.isArray(data) ? data.map((r: any) => r.id) : (data?.id ? [data.id] : [])
+    return Response.json({ ok: true, ids })
   }
 }
 

@@ -15,16 +15,21 @@ async function getStatDefinitions(): Promise<StatDef[]> {
 }
 
 async function getTeams() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/teams`, { cache: 'no-store' })
-  if (!res.ok) return [] as Array<{ code: string; name: string }>
-  return res.json()
+  const supabase = await createClient();
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('code, name')
+    .order('code');
+  return teams || [];
 }
 
 async function getTeamWeights(teamCode: string): Promise<WeightRow[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/team-weights?team=${teamCode}`, { cache: 'no-store' })
-  if (!res.ok) return []
-  const json = await res.json()
-  return json.weights ?? []
+  const supabase = await createClient();
+  const { data: weights } = await supabase
+    .from('team_weights')
+    .select('stat_key, weight')
+    .eq('team_code', teamCode);
+  return weights || [];
 }
 
 export default async function WeightsPage({ searchParams }: { searchParams?: Promise<{ team?: string }> }) {
