@@ -19,37 +19,24 @@ const links = [
 export default function MobileNav() {
   const pathname = usePathname();
   const [checked, setChecked] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Only show nav after login with proper permissions
+  // Show nav for any authenticated user; page-level guards enforce roles
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          if (!cancelled) { setIsAuthorized(false); setChecked(true); }
-          return;
-        }
-        // Check coach membership (authorization)
-        const { data: coach } = await supabase
-          .from('coaches')
-          .select('id')
-          .eq('profile_id', user.id)
-          .maybeSingle();
-        if (!cancelled) {
-          setIsAuthorized(!!coach);
-          setChecked(true);
-        }
+        if (!cancelled) { setIsAuthenticated(!!user); setChecked(true); }
       } catch {
-        if (!cancelled) { setIsAuthorized(false); setChecked(true); }
+        if (!cancelled) { setIsAuthenticated(false); setChecked(true); }
       }
     })();
     return () => { cancelled = true; };
   }, []);
   
-  if (!checked || !isAuthorized) return null;
+  if (!checked || !isAuthenticated) return null;
 
   return (
     <>
