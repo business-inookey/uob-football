@@ -59,7 +59,7 @@ function GameCard({ game, teams }: { game: any; teams: Array<{ code: string; nam
   const [editing, setEditing] = useState(false)
   return (
     <div className="border rounded p-4 space-y-2">
-      <div className="text-sm text-muted-foreground">{new Date(game.kickoff_at).toLocaleString()}</div>
+      <div className="text-sm text-muted-foreground">{new Date(game.kickoff_at).toLocaleDateString('en-US')} {new Date(game.kickoff_at).toLocaleTimeString('en-US')}</div>
       <div className="font-semibold">{game.home_team?.code} vs {game.away_team?.code}</div>
       {game.location && <div className="text-sm">{game.location}</div>}
       {game.notes && <div className="text-xs text-muted-foreground">{game.notes}</div>}
@@ -100,13 +100,48 @@ function GameDialog({ initial, teams, onClose }: { initial?: any; teams: Array<{
     notes: initial?.notes ?? ''
   })
   const [saving, setSaving] = useState(false)
+  const [locationType, setLocationType] = useState<'home' | 'away'>('home')
+  const [opponentType, setOpponentType] = useState<'team' | 'external'>('team')
+  const [customOpponent, setCustomOpponent] = useState('')
+  function formatLocalForInput(value: string): string {
+    // Accepts ISO (with Z) or local 'YYYY-MM-DDTHH:mm', returns local 'YYYY-MM-DDTHH:mm'
+    if (!value) return ''
+    // If value has 'Z' treat as UTC and convert to local components
+    const hasZ = /z$/i.test(value)
+    const date = hasZ ? new Date(value) : new Date(value.replace(' ', 'T'))
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+  const [kickoffLocal, setKickoffLocal] = useState(
+    initial?.kickoff_at ? formatLocalForInput(initial.kickoff_at) : formatLocalForInput(new Date().toISOString())
+  )
   const isEdit = !!form.id
   async function save() {
     setSaving(true)
+    // Convert local 'YYYY-MM-DDTHH:mm' to ISO UTC to preserve intended wall time
+    const [d, t] = kickoffLocal.split('T')
+    const [y, m, day] = d.split('-').map(Number)
+    const [hh, mm] = t.split(':').map(Number)
+    const utcIso = new Date(y, (m as number) - 1, day as number, hh as number, mm as number).toISOString()
+    const appendedNotes = opponentType === 'external' && customOpponent.trim().length > 0
+      ? `${form.notes ? form.notes + ' ' : ''}(Opponent: ${customOpponent.trim()})`
+      : form.notes
+    const finalForm = {
+      ...form,
+      kickoff_at: utcIso,
+      location: locationType === 'home' ? 'Home' : 'Away',
+      // Keep away_team as internal code to satisfy API; store external opponent in notes
+      away_team: form.away_team,
+      notes: appendedNotes,
+    }
     const res = await fetch('/api/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify(finalForm)
     })
     setSaving(false)
     if (res.ok) {
@@ -118,28 +153,77 @@ function GameDialog({ initial, teams, onClose }: { initial?: any; teams: Array<{
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
       <div className="bg-white rounded p-4 w-full max-w-md space-y-3">
         <h3 className="font-semibold text-black">{isEdit ? 'Edit Game' : 'Create Game'}</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-3">
           <div>
-            <label className="block text-xs mb-1 text-black">Home</label>
+            <label className="block text-xs mb-1 text-black">Home Team</label>
             <select value={form.home_team} onChange={e => setForm(f => ({ ...f, home_team: e.target.value }))} className="h-10 border rounded px-3 w-full text-black bg-white">
               {teams.map(t => <option key={t.code} value={t.code}>{t.code}</option>)}
             </select>
           </div>
+          
           <div>
-            <label className="block text-xs mb-1 text-black">Away</label>
-            <select value={form.away_team} onChange={e => setForm(f => ({ ...f, away_team: e.target.value }))} className="h-10 border rounded px-3 w-full text-black bg-white">
-              {teams.map(t => <option key={t.code} value={t.code}>{t.code}</option>)}
-            </select>
+            <label className="block text-xs mb-1 text-black">Opponent</label>
+            <div className="flex gap-2 mb-2">
+              <button 
+                type="button"
+                onClick={() => setOpponentType('team')} 
+                className={`px-3 py-1 text-xs rounded ${opponentType === 'team' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}
+              >
+                Team
+              </button>
+              <button 
+                type="button"
+                onClick={() => setOpponentType('external')} 
+                className={`px-3 py-1 text-xs rounded ${opponentType === 'external' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}
+              >
+                External
+              </button>
+            </div>
+            {opponentType === 'team' ? (
+              <select value={form.away_team} onChange={e => setForm(f => ({ ...f, away_team: e.target.value }))} className="h-10 border rounded px-3 w-full text-black bg-white">
+                {teams.map(t => <option key={t.code} value={t.code}>{t.code}</option>)}
+              </select>
+            ) : (
+              <input 
+                value={customOpponent} 
+                onChange={e => setCustomOpponent(e.target.value)} 
+                placeholder="Opponent team name" 
+                className="h-10 border rounded px-3 w-full text-black bg-white" 
+              />
+            )}
           </div>
-          <div className="col-span-2">
-            <label className="block text-xs mb-1 text-black">Kickoff</label>
-            <input type="datetime-local" value={form.kickoff_at} onChange={e => setForm(f => ({ ...f, kickoff_at: e.target.value }))} className="h-10 border rounded px-3 w-full text-black bg-white" />
+
+          <div>
+            <label className="block text-xs mb-1 text-black">Kickoff (local)</label>
+            <input
+              type="datetime-local"
+              value={kickoffLocal}
+              onChange={e => setKickoffLocal(e.target.value)}
+              className="h-10 border rounded px-3 w-full text-black bg-white"
+            />
           </div>
-          <div className="col-span-2">
+
+          <div>
             <label className="block text-xs mb-1 text-black">Location</label>
-            <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="h-10 border rounded px-3 w-full text-black bg-white" />
+            <div className="flex gap-2">
+              <button 
+                type="button"
+                onClick={() => setLocationType('home')} 
+                className={`px-3 py-1 text-xs rounded ${locationType === 'home' ? 'bg-green-500 text-white' : 'bg-gray-200 text-black'}`}
+              >
+                Home
+              </button>
+              <button 
+                type="button"
+                onClick={() => setLocationType('away')} 
+                className={`px-3 py-1 text-xs rounded ${locationType === 'away' ? 'bg-red-500 text-white' : 'bg-gray-200 text-black'}`}
+              >
+                Away
+              </button>
+            </div>
           </div>
-          <div className="col-span-2">
+          
+          <div>
             <label className="block text-xs mb-1 text-black">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="border rounded px-3 w-full h-20 text-black bg-white" />
           </div>
