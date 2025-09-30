@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const links = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
@@ -16,7 +18,39 @@ const links = [
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const [checked, setChecked] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // Only show nav after login with proper permissions
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          if (!cancelled) { setIsAuthorized(false); setChecked(true); }
+          return;
+        }
+        // Check coach membership (authorization)
+        const { data: coach } = await supabase
+          .from('coaches')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+        if (!cancelled) {
+          setIsAuthorized(!!coach);
+          setChecked(true);
+        }
+      } catch {
+        if (!cancelled) { setIsAuthorized(false); setChecked(true); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   
+  if (!checked || !isAuthorized) return null;
+
   return (
     <>
       {/* Desktop Navigation */}
@@ -66,21 +100,20 @@ export default function MobileNav() {
 
       {/* Mobile Navigation */}
       <nav className="fixed bottom-0 inset-x-0 border-t bg-background sm:hidden">
-        <ul className="grid grid-cols-5 text-xs">
-          {links.slice(0,5).map((l) => {
+        <div className="flex gap-2 overflow-x-auto px-2 py-2 text-xs whitespace-nowrap">
+          {links.map((l) => {
             const active = pathname?.startsWith(l.href);
             return (
-              <li key={l.href} className="text-center">
-                <Link
-                  href={l.href}
-                  className={`block py-3 ${active ? "text-primary font-medium" : "text-foreground"}`}
-                >
-                  {l.label}
-                </Link>
-              </li>
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`px-3 py-2 rounded-md ${active ? "bg-primary text-primary-foreground" : "text-foreground bg-secondary/50"}`}
+              >
+                {l.label}
+              </Link>
             );
           })}
-        </ul>
+        </div>
       </nav>
     </>
   );

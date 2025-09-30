@@ -33,9 +33,13 @@ export default function PlayerStatCard({ player, statDefinitions, teamCode }: Pl
   const [stats, setStats] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  // Load existing stats for this player
+  // Load existing stats for this player only when expanded first time
   useEffect(() => {
+    if (!expanded || loaded) return;
+    let ignore = false;
     async function loadStats() {
       try {
         const res = await fetch(`/api/stats?team=${teamCode}&player_id=${player.id}`);
@@ -45,14 +49,18 @@ export default function PlayerStatCard({ player, statDefinitions, teamCode }: Pl
           data.forEach((stat: any) => {
             statsMap[stat.stat_key] = stat.value;
           });
-          setStats(statsMap);
+          if (!ignore) {
+            setStats(statsMap);
+            setLoaded(true);
+          }
         }
       } catch (error) {
         console.error('Error loading stats:', error);
       }
     }
     loadStats();
-  }, [player.id, teamCode]);
+    return () => { ignore = true; };
+  }, [expanded, loaded, player.id, teamCode]);
 
   // Auto-save function with debouncing
   const saveStats = useCallback(
@@ -95,29 +103,40 @@ export default function PlayerStatCard({ player, statDefinitions, teamCode }: Pl
   };
 
   return (
-    <div className="border rounded-lg p-4 space-y-4">
-      <div className="flex items-center gap-3">
-        <h3 className="font-medium">{player.full_name}</h3>
-        <span className="text-sm text-muted-foreground">{player.primary_position}</span>
-        <span className="text-sm text-muted-foreground">({player.current_team})</span>
-        {saving && <span className="text-xs text-blue-600">Saving...</span>}
-        {lastSaved && !saving && (
-          <span className="text-xs text-green-600">
-            Saved {lastSaved.toLocaleTimeString()}
-          </span>
-        )}
-      </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {statDefinitions.map((stat) => (
-          <StatInput 
-            key={stat.key} 
-            stat={stat} 
-            value={stats[stat.key] || 0}
-            onChange={(value) => handleStatChange(stat.key, value)}
-          />
-        ))}
-      </div>
+    <div className="border rounded-lg">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full p-4 flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3 text-left">
+          <h3 className="font-medium">{player.full_name}</h3>
+          <span className="text-sm text-muted-foreground">{player.primary_position}</span>
+          <span className="text-sm text-muted-foreground">({player.current_team})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {saving && <span className="text-xs text-blue-600">Saving...</span>}
+          {lastSaved && !saving && (
+            <span className="text-xs text-green-600">Saved {lastSaved.toLocaleTimeString()}</span>
+          )}
+          <span className="text-sm text-muted-foreground">{expanded ? "▲" : "▼"}</span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="p-4 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {statDefinitions.map((stat) => (
+              <StatInput
+                key={stat.key}
+                stat={stat}
+                value={stats[stat.key] || 0}
+                onChange={(value) => handleStatChange(stat.key, value)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
