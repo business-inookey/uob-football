@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import MobileNav from "@/components/layout/MobileNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +28,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <MobileNav />
+          <div className="pb-16 sm:pt-0">{children}</div>
         </ThemeProvider>
       </body>
     </html>
