@@ -17,11 +17,6 @@ export default async function BestXIPage() {
   const defaultTeam = teams[0]?.code ?? '1s';
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-xl font-semibold">Best XI</h1>
-      <BestXIClient teams={teams} defaultTeam={defaultTeam} />
-    </div>
+    <BestXIClient teams={teams} defaultTeam={defaultTeam} />
   );
 }
-
-

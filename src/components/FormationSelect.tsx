@@ -27,26 +27,147 @@ export default function FormationSelect({ value, onChange }: { value: Formation;
   }
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-5 gap-3 items-center">
-        <label className="text-sm">GK</label>
-        <input type="number" min={1} max={1} value={value.gk} onChange={(e) => set('gk', parseInt(e.target.value || '0', 10))} className="h-9 border rounded px-2 col-span-4" />
-        <label className="text-sm">DEF</label>
-        <input type="number" min={0} max={10} value={value.def} onChange={(e) => set('def', parseInt(e.target.value || '0', 10))} className="h-9 border rounded px-2 col-span-4" />
-        <label className="text-sm">MID</label>
-        <input type="number" min={0} max={10} value={value.mid} onChange={(e) => set('mid', parseInt(e.target.value || '0', 10))} className="h-9 border rounded px-2 col-span-4" />
-        <label className="text-sm">WNG</label>
-        <input type="number" min={0} max={10} value={value.wng} onChange={(e) => set('wng', parseInt(e.target.value || '0', 10))} className="h-9 border rounded px-2 col-span-4" />
-        <label className="text-sm">ST</label>
-        <input type="number" min={0} max={10} value={value.st} onChange={(e) => set('st', parseInt(e.target.value || '0', 10))} className="h-9 border rounded px-2 col-span-4" />
+    <div className="space-y-4">
+      <div className="space-y-3">
+        {/* Goalkeeper */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Goalkeeper</label>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => set('gk', Math.max(1, value.gk - 1))}
+              disabled={value.gk <= 1}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              -
+            </button>
+            <div className="w-8 text-center font-semibold text-foreground text-sm">
+              {value.gk}
+            </div>
+            <button
+              onClick={() => set('gk', Math.min(1, value.gk + 1))}
+              disabled={value.gk >= 1}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Defenders */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Defenders</label>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => set('def', Math.max(0, value.def - 1))}
+              disabled={value.def <= 0}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              -
+            </button>
+            <div className="w-8 text-center font-semibold text-foreground text-sm">
+              {value.def}
+            </div>
+            <button
+              onClick={() => set('def', Math.min(10, value.def + 1))}
+              disabled={value.def >= 10}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Midfielders */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Midfielders</label>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => set('mid', Math.max(0, value.mid - 1))}
+              disabled={value.mid <= 0}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              -
+            </button>
+            <div className="w-8 text-center font-semibold text-foreground text-sm">
+              {value.mid}
+            </div>
+            <button
+              onClick={() => set('mid', Math.min(10, value.mid + 1))}
+              disabled={value.mid >= 10}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Wingers */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Wingers</label>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => set('wng', Math.max(0, value.wng - 1))}
+              disabled={value.wng <= 0}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              -
+            </button>
+            <div className="w-8 text-center font-semibold text-foreground text-sm">
+              {value.wng}
+            </div>
+            <button
+              onClick={() => set('wng', Math.min(10, value.wng + 1))}
+              disabled={value.wng >= 10}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Strikers */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Strikers</label>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => set('st', Math.max(0, value.st - 1))}
+              disabled={value.st <= 0}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              -
+            </button>
+            <div className="w-8 text-center font-semibold text-foreground text-sm">
+              {value.st}
+            </div>
+            <button
+              onClick={() => set('st', Math.min(10, value.st + 1))}
+              disabled={value.st >= 10}
+              className="w-6 h-6 rounded border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs font-medium"
+            >
+              +
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="text-sm text-muted-foreground">
-        Outfield total: {value.def + value.mid + value.wng + value.st} / 10
+      <div className="pt-2 border-t border-border">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Outfield total:</span>
+          <span className={`font-semibold ${validation.ok ? 'text-green-600' : 'text-red-600'}`}>
+            {value.def + value.mid + value.wng + value.st} / 10
+          </span>
+        </div>
       </div>
 
       {!validation.ok && (
-        <div className="text-sm text-red-600">{validation.reason}</div>
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {validation.reason}
+          </div>
+        </div>
       )}
     </div>
   );

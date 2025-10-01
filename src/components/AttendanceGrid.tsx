@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
 
 interface Player {
   id: string;
@@ -130,7 +131,7 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {saving && <span className="text-sm text-blue-600">Saving...</span>}
           {lastSaved && !saving && (
@@ -139,12 +140,19 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
             </span>
           )}
         </div>
-        <button
+        <Button
           onClick={markAllPresent}
-          className="h-10 px-4 border rounded bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+          variant="outline"
+          className="w-full sm:w-auto bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+          dataTitle="Mark All Present"
+          dataText="Marking..."
+          dataStart="All Marked Present!"
         >
-          Mark All Present
-        </button>
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="truncate">Mark All Present</span>
+        </Button>
       </div>
 
       <div className="space-y-3">
@@ -153,44 +161,56 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
           const currentNotes = attendance[player.id]?.notes || '';
 
           return (
-            <div key={player.id} className="border rounded-lg p-4 space-y-3">
+            <div key={player.id} className="card p-4 space-y-4">
+              {/* Player Info */}
               <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <h3 className="font-medium">{player.full_name}</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-primary">
+                    {player.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground truncate">{player.full_name}</h3>
+                  <p className="text-sm text-muted-foreground truncate">
                     {player.primary_position} • {player.current_team}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex gap-2">
+              {/* Status Buttons */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Status:</label>
+                <div className="grid grid-cols-2 sm:flex gap-2">
                   {statusOptions.map((option) => (
-                    <button
+                    <Button
                       key={option.value}
                       onClick={() => handleStatusChange(player.id, option.value)}
-                      className={`px-3 py-1 text-sm border rounded transition-colors ${
+                      variant="outline"
+                      size="sm"
+                      className={`w-full sm:w-auto text-xs ${
                         currentStatus === option.value
                           ? option.color
                           : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                       }`}
+                      dataTitle={option.label}
+                      dataText="Updating..."
+                      dataStart="Updated!"
                     >
                       {option.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-foreground min-w-12">
-                  Notes:
-                </label>
+              {/* Notes Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Notes:</label>
                 <input
                   type="text"
                   value={currentNotes}
                   onChange={(e) => handleNotesChange(player.id, e.target.value)}
                   placeholder="Optional notes..."
-                  className="flex-1 h-8 px-3 border rounded text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="input w-full"
                 />
               </div>
             </div>

@@ -48,6 +48,8 @@ function takeTop(players: PlayerRow[], count: number): PlayerRow[] {
 }
 
 export function bestXI(players: PlayerRow[], formation: Formation): BestXIResult {
+  console.log('bestXI called with:', { playerCount: players.length, formation })
+  
   const byPos: Record<'GK'|'DEF'|'MID'|'WNG'|'ST', PlayerRow[]> = {
     GK: [], DEF: [], MID: [], WNG: [], ST: []
   }
@@ -57,6 +59,14 @@ export function bestXI(players: PlayerRow[], formation: Formation): BestXIResult
       : 'MID'
     byPos[key].push(p)
   }
+  
+  console.log('Players by position:', {
+    GK: byPos.GK.length,
+    DEF: byPos.DEF.length,
+    MID: byPos.MID.length,
+    WNG: byPos.WNG.length,
+    ST: byPos.ST.length
+  })
 
   let gk = takeTop(byPos.GK, formation.gk)
   let def = takeTop(byPos.DEF, formation.def)
@@ -115,7 +125,8 @@ export function bestXI(players: PlayerRow[], formation: Formation): BestXIResult
     mid: mid.length,
     wng: wng.length,
     st: st.length,
-    total: orderedXI.length
+    total: orderedXI.length,
+    expected: formation.gk + formation.def + formation.mid + formation.wng + formation.st
   })
 
   return { gk, def, mid, wng, st, orderedXI }

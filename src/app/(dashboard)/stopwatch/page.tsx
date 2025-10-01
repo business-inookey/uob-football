@@ -11,20 +11,7 @@ export default async function StopwatchPage() {
 
   const teams = teamsResult.data || [];
 
-  // Debug logging
-  console.log('Teams fetched:', teams.length, teams);
-  if (teamsResult.error) console.error('Teams error:', teamsResult.error);
-
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Stopwatch Drills</h1>
-        <p className="text-muted-foreground mt-2">
-          Time player laps and automatically update pace & stamina stats
-        </p>
-      </div>
-      
-      <StopwatchClient teams={teams} />
-    </div>
+    <StopwatchClient teams={teams} />
   );
 }

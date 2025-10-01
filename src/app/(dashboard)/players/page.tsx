@@ -1,5 +1,6 @@
 import { requireCoach } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import PlayersClient from "./PlayersClient";
 
 async function getTeams() {
   const supabase = await createClient();
@@ -62,55 +63,14 @@ export default async function PlayersPage({ searchParams }: { searchParams?: Pro
   const coachTeams = await getCoachTeams();
   const teams = coachTeams.length ? coachTeams : await getTeams();
   const params = await searchParams;
-  const teamCode = params?.team || 'all' // Default to 'all' instead of specific team
-  const players = await getPlayers(teamCode)
+  const teamCode = params?.team || 'all';
+  const players = await getPlayers(teamCode);
+
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold">Players</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <a href="/players/import" className="h-10 px-3 border rounded">Import CSV</a>
-          <a href="/stats" className="h-10 px-3 border rounded bg-primary text-primary-foreground hover:bg-primary/90">Enter Stats</a>
-          {teams.length > 0 && (
-            <form>
-              <select name="team" defaultValue={teamCode} className="h-10 border rounded px-3">
-                <option value="all">All Teams</option>
-                {teams.map((t: any) => (
-                  <option key={t.code} value={t.code}>{t.code} - {t.name}</option>
-                ))}
-              </select>
-              <button className="ml-2 h-10 px-3 border rounded" type="submit">Load</button>
-            </form>
-          )}
-        </div>
-      </div>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left border-b">
-            <th className="py-2">Name</th>
-            <th className="py-2">Position</th>
-            <th className="py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((p: any) => (
-            <tr key={p.id} className="border-b">
-              <td className="py-2">{p.full_name}</td>
-              <td className="py-2">{p.primary_position}</td>
-              <td className="py-2">
-                <a 
-                  href={`/players/${p.id}/attendance`}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  📊 Attendance
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <PlayersClient 
+      teams={teams}
+      players={players}
+      selectedTeam={teamCode}
+    />
   );
 }
-
-

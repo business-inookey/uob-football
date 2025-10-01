@@ -37,15 +37,12 @@ async function getVideoAssets(team: string) {
       .eq('code', team)
       .single();
     
-    console.log('Video page - Team data for filter:', { team, teamData });
-    
     if (teamData) {
       query = query.eq('team_id', teamData.id);
     }
   }
 
   const { data: videoAssets, error } = await query;
-  console.log('Video page - Filtered videos query result:', { videoAssets, error, team });
   
   if (error) {
     console.error('Error fetching video assets:', error);
@@ -68,20 +65,16 @@ async function getVideoAssets(team: string) {
     ...asset,
     teams: teams?.find(t => t.id === asset.team_id) || null
   }));
-
-  console.log('Video page - Final video assets with teams:', videoAssetsWithTeams.length);
   
   return videoAssetsWithTeams;
 }
 
 export default async function VideoPage({ searchParams }: { searchParams?: Promise<{ team?: string }> }) {
   await requireCoach();
-  const params = await searchParams
+  const params = await searchParams;
   const teams = await getTeams();
-  const team = params?.team || teams[0]?.code || ''
-  const videoAssets = await getVideoAssets(team)
-
-  console.log('Video page - Final data:', { teams: teams.length, team, videoAssets: videoAssets.length });
+  const team = params?.team || teams[0]?.code || '';
+  const videoAssets = await getVideoAssets(team);
 
   return (
     <VideoClient teams={teams} team={team} videoAssets={videoAssets} />

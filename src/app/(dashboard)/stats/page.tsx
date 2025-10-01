@@ -1,6 +1,6 @@
 import { requireCoach } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import PlayerStatCard from "@/components/StatsEntry";
+import StatsClient from "./StatsClient";
 
 async function getTeams() {
   const supabase = await createClient();
@@ -77,40 +77,11 @@ export default async function StatsPage({ searchParams }: { searchParams?: Promi
   const statDefinitions = await getStatDefinitions();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold">Player Statistics</h1>
-        <div className="ml-auto flex items-center gap-2">
-          {teams.length > 0 && (
-            <form>
-              <select name="team" defaultValue={teamCode} className="h-10 border rounded px-3">
-                <option value="all">All Teams</option>
-                {teams.map((t: any) => (
-                  <option key={t.code} value={t.code}>{t.code} - {t.name}</option>
-                ))}
-              </select>
-              <button className="ml-2 h-10 px-3 border rounded" type="submit">Load</button>
-            </form>
-          )}
-        </div>
-      </div>
-
-      {players.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No players found for the selected team.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {players.map((player: any) => (
-            <PlayerStatCard 
-              key={player.id} 
-              player={player} 
-              statDefinitions={statDefinitions}
-              teamCode={teamCode}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <StatsClient 
+      teams={teams}
+      players={players}
+      statDefinitions={statDefinitions}
+      selectedTeam={teamCode}
+    />
   );
 }

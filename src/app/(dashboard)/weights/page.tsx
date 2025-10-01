@@ -1,6 +1,6 @@
 import { requireCoach, requireLeadCoach } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { WeightsEditor, WeightsReadOnly } from "./WeightsClient";
+import WeightsClient from "./WeightsClient";
 
 type StatDef = { key: string; label: string; higher_is_better: boolean };
 type WeightRow = { stat_key: string; weight: number };
@@ -54,38 +54,13 @@ export default async function WeightsPage({ searchParams }: { searchParams?: Pro
     getTeamWeights(teamCode),
   ]);
 
-  const weightsMap = new Map(existing.map(w => [w.stat_key, w.weight]));
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold">Team Weights</h1>
-        <div className="ml-auto">
-          <form>
-            <select name="team" defaultValue={teamCode} className="h-10 border rounded px-3">
-              {teams.map((t: any) => (
-                <option key={t.code} value={t.code}>{t.code} - {t.name}</option>
-              ))}
-            </select>
-            <button className="ml-2 h-10 px-3 border rounded" type="submit">Load</button>
-          </form>
-        </div>
-      </div>
-
-      {isLead ? (
-        <WeightsEditor
-          teamCode={teamCode}
-          defs={defs}
-          initialWeights={existing}
-        />
-      ) : (
-        <WeightsReadOnly defs={defs} weights={existing} />
-      )}
-
-      <div className="text-sm text-muted-foreground">
-        Sliders range: 0.5 (downweight) to 1.5 (upweight). Baseline 1.0.
-      </div>
-    </div>
+    <WeightsClient 
+      teamCode={teamCode}
+      teams={teams}
+      defs={defs}
+      initialWeights={existing}
+      isLead={isLead}
+    />
   );
 }
-

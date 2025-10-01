@@ -102,30 +102,82 @@ export default function PlayerStatCard({ player, statDefinitions, teamCode }: Pl
     saveStats(statKey, numValue);
   };
 
+  const getPositionColor = (position: string) => {
+    const colors: Record<string, string> = {
+      'GK': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      'DEF': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'MID': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'FWD': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    };
+    return colors[position] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  };
+
+  const getTeamColor = (team: string) => {
+    const colors: Record<string, string> = {
+      '1s': 'bg-primary/10 text-primary',
+      '2s': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
+      '3s': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
+      '4s': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+    };
+    return colors[team] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  };
+
   return (
-    <div className="border rounded-lg">
+    <div className="card p-6 space-y-4">
+      {/* Player Header */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full p-4 flex items-center justify-between"
+        className="w-full flex items-center justify-between group"
       >
-        <div className="flex items-center gap-3 text-left">
-          <h3 className="font-medium">{player.full_name}</h3>
-          <span className="text-sm text-muted-foreground">{player.primary_position}</span>
-          <span className="text-sm text-muted-foreground">({player.current_team})</span>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+            <span className="text-lg font-bold text-primary">
+              {player.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </span>
+          </div>
+          <div className="text-left">
+            <h3 className="font-semibold text-lg text-foreground">{player.full_name}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`badge ${getPositionColor(player.primary_position)}`}>
+                {player.primary_position}
+              </span>
+              <span className={`badge ${getTeamColor(player.current_team)}`}>
+                {player.current_team}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {saving && <span className="text-xs text-blue-600">Saving...</span>}
-          {lastSaved && !saving && (
-            <span className="text-xs text-green-600">Saved {lastSaved.toLocaleTimeString()}</span>
-          )}
-          <span className="text-sm text-muted-foreground">{expanded ? "▲" : "▼"}</span>
+        
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            {saving && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <div className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {lastSaved && !saving && (
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Saved {lastSaved.toLocaleTimeString()}</span>
+              </div>
+            )}
+          </div>
+          <div className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </button>
 
+      {/* Stats Input */}
       {expanded && (
-        <div className="p-4 pt-0">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="pt-4 border-t border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {statDefinitions.map((stat) => (
               <StatInput
                 key={stat.key}
@@ -151,13 +203,17 @@ function StatInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-1">
-      <label className="text-sm font-medium text-foreground">
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-foreground flex items-center gap-2">
         {stat.label}
         {stat.higher_is_better ? (
-          <span className="text-green-600 ml-1">↑</span>
+          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+          </svg>
         ) : (
-          <span className="text-red-600 ml-1">↓</span>
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+          </svg>
         )}
       </label>
       <input
@@ -167,7 +223,7 @@ function StatInput({
         max={stat.max_value}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 px-3 border rounded text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+        className="input w-full"
         placeholder={`${stat.min_value}-${stat.max_value}`}
       />
       <p className="text-xs text-muted-foreground">

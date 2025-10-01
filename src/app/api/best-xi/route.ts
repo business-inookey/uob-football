@@ -72,25 +72,33 @@ export async function POST(request: Request) {
     speed: speedMap.get(r.players.id) || 0,
   }))
 
-  // Fallback: if no composites present, pick players by current_team with zero composites
-  if (!players.length) {
+  // Fallback: if not enough players with composites, supplement with players by current_team
+  const expectedTotal = formation.gk + formation.def + formation.mid + formation.wng + formation.st;
+  if (players.length < expectedTotal) {
     const { data: teamPlayers } = await supabase
       .from('players')
       .select('id, full_name, primary_position, current_team')
       .eq('current_team', teamCode)
 
-    players = (teamPlayers ?? []).map((p: any) => ({
-      id: p.id,
-      full_name: p.full_name,
-      primary_position: p.primary_position,
-      composite: 0,
-      speed: 0,
-    }))
+    const existingIds = new Set(players.map(p => p.id));
+    const additionalPlayers = (teamPlayers ?? [])
+      .filter((p: any) => !existingIds.has(p.id))
+      .map((p: any) => ({
+        id: p.id,
+        full_name: p.full_name,
+        primary_position: p.primary_position,
+        composite: 0,
+        speed: 0,
+      }));
+
+    players = [...players, ...additionalPlayers];
+    console.log(`Added ${additionalPlayers.length} players without composite scores to reach ${players.length} total players`);
   }
 
   console.log(`Best XI API: Found ${players.length} players for team ${teamCode}`)
   console.log('Formation:', formation)
   console.log('Expected total:', formation.gk + formation.def + formation.mid + formation.wng + formation.st)
+  console.log('Available players:', players.map(p => ({ name: p.full_name, position: p.primary_position, composite: p.composite })))
 
   const xi = bestXI(players, formation)
   const counts = {
