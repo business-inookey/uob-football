@@ -69,6 +69,10 @@ async function main() {
     await runMigration('0001_core.sql')
     await runMigration('0002_view.sql')
     await runMigration('0003_rls.sql')
+    await runMigration('0004_add_current_team.sql')
+    await runMigration('0005_lead_coach_permissions.sql')
+    await runMigration('0006_sample_stats.sql')
+    await runMigration('0007_attendance_system.sql')
     
     // Run seed data
     await runSeed()

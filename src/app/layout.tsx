@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UoB Football - Team Management System",
-  description: "University of Birmingham Football Team Management System",
+  title: "GameLens - UoB Football Team Management System",
+  description: "GameLens - University of Birmingham Football Team Management System",
 };
 
 export default function RootLayout({

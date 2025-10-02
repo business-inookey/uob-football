@@ -136,8 +136,12 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200/50 mb-2">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
-                <span className="text-sm font-bold text-white">UoB</span>
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/GameLens Logo.png" 
+                  alt="GameLens Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Navigation</h3>

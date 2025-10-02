@@ -52,13 +52,26 @@ export default function DashboardClient({
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 p-6 space-y-8">
       {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-          Welcome, {profile.full_name}
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Manage your team data and view this week's games
-        </p>
+      <div className="space-y-4">
+        {/* UOB Logo */}
+        <div className="flex justify-center">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center shadow-lg">
+            <img 
+              src="/UOB LOGO new.png" 
+              alt="University of Birmingham Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Welcome, {profile.full_name}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Manage your team data and view this week's games
+          </p>
+        </div>
       </div>
 
       {/* This Week's Games */}
