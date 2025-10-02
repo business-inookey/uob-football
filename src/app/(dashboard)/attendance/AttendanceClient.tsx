@@ -9,6 +9,13 @@ interface Team {
   name: string;
 }
 
+interface Player {
+  id: string;
+  full_name: string;
+  primary_position: string;
+  current_team: string;
+}
+
 interface AttendanceClientProps {
   teams: Team[];
   initialTeam: string;
