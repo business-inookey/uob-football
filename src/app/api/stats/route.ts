@@ -1,40 +1,26 @@
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers'
+import { StatsBody, TeamQuery, PlayerQuery } from '@/lib/zod'
 
-const StatEntry = z.object({
-  player_id: z.string().uuid(),
-  stat_key: z.string(),
-  value: z.number().min(0),
-  team_code: z.string()
-})
-
-const Body = z.object({
-  entries: z.array(StatEntry).min(1)
-})
-
-export async function POST(request: Request) {
+async function postStats(request: Request) {
   const json = await request.json().catch(() => null)
-  const parsed = Body.safeParse(json)
-  
-  if (!parsed.success) {
-    return new Response('Invalid payload', { status: 400 })
-  }
+  const parsed = StatsBody.parse(json)
 
   const supabase = await createClient()
 
   // Handle team code - if 'all', we need to get the player's actual team
   let teamId: string;
   
-  if (parsed.data.entries[0].team_code === 'all') {
+  if (parsed.entries[0].team_code === 'all') {
     // Get the player's current team
     const { data: player, error: playerError } = await supabase
       .from('players')
       .select('current_team')
-      .eq('id', parsed.data.entries[0].player_id)
+      .eq('id', parsed.entries[0].player_id)
       .single()
 
     if (playerError || !player) {
-      return new Response('Player not found', { status: 404 })
+      handleSupabaseError(playerError, 'fetching player for stats')
     }
 
     // Get team ID for the player's current team
@@ -45,7 +31,7 @@ export async function POST(request: Request) {
       .single()
 
     if (teamError || !team) {
-      return new Response('Player team not found', { status: 404 })
+      handleSupabaseError(teamError, 'fetching player team for stats')
     }
     
     teamId = team.id;
@@ -54,11 +40,11 @@ export async function POST(request: Request) {
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('id')
-      .eq('code', parsed.data.entries[0].team_code)
+      .eq('code', parsed.entries[0].team_code)
       .single()
 
     if (teamError || !team) {
-      return new Response('Team not found', { status: 404 })
+      handleSupabaseError(teamError, 'fetching team for stats')
     }
     
     teamId = team.id;
@@ -66,7 +52,7 @@ export async function POST(request: Request) {
 
   const results: Array<{ player_id: string; stat_key: string; status: 'inserted'|'updated'|'skipped'; reason?: string }> = []
 
-  for (const entry of parsed.data.entries) {
+  for (const entry of parsed.entries) {
     // Check if stat already exists
     const { data: existing } = await supabase
       .from('player_stats')
@@ -87,12 +73,7 @@ export async function POST(request: Request) {
         .eq('id', existing.id)
 
       if (error) {
-        results.push({ 
-          player_id: entry.player_id, 
-          stat_key: entry.stat_key, 
-          status: 'skipped', 
-          reason: error.message 
-        })
+        handleSupabaseError(error, 'updating player stat')
       } else {
         results.push({ 
           player_id: entry.player_id, 
@@ -112,12 +93,7 @@ export async function POST(request: Request) {
         })
 
       if (error) {
-        results.push({ 
-          player_id: entry.player_id, 
-          stat_key: entry.stat_key, 
-          status: 'skipped', 
-          reason: error.message 
-        })
+        handleSupabaseError(error, 'inserting player stat')
       } else {
         results.push({ 
           player_id: entry.player_id, 
@@ -128,17 +104,13 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ ok: true, results })
+  return createSuccessResponse({ ok: true, results })
 }
 
-export async function GET(request: Request) {
+async function getStats(request: Request) {
   const { searchParams } = new URL(request.url)
-  const teamCode = searchParams.get('team')
+  const { team: teamCode } = TeamQuery.parse({ team: searchParams.get('team') })
   const playerId = searchParams.get('player_id')
-  
-  if (!teamCode) {
-    return new Response('team query param required', { status: 400 })
-  }
 
   const supabase = await createClient()
 
@@ -156,7 +128,7 @@ export async function GET(request: Request) {
       .single()
 
     if (teamError || !team) {
-      return new Response('Team not found', { status: 404 })
+      handleSupabaseError(teamError, 'fetching team for stats query')
     }
 
     query = query.eq('team_id', team.id)
@@ -169,8 +141,11 @@ export async function GET(request: Request) {
   const { data, error } = await query
 
   if (error) {
-    return new Response(error.message, { status: 400 })
+    handleSupabaseError(error, 'fetching player stats')
   }
 
-  return Response.json(data || [])
+  return createSuccessResponse(data || [])
 }
+
+export const POST = withErrorHandling(postStats)
+export const GET = withErrorHandling(getStats)

@@ -1,17 +1,8 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse, requireAuth } from '@/lib/api-helpers'
+import { VideoAsset, TeamQuery } from '@/lib/zod'
 
-const VideoAssetPayload = z.object({
-  id: z.string().uuid().optional(),
-  team: z.string().min(1), // team code
-  team2: z.string().min(1).optional(), // optional second team code
-  title: z.string().min(1),
-  url: z.string().url(),
-  provider: z.string().default('veo3'),
-  meta: z.record(z.any()).default({}),
-})
-
-export async function GET(request: Request) {
+async function getVideoAssets(request: Request) {
   const { searchParams } = new URL(request.url)
   const teamCode = searchParams.get('team')
 
@@ -34,109 +25,93 @@ export async function GET(request: Request) {
 
   const { data, error } = await query
   if (error) {
-    console.error('Video assets query error:', error)
-    return new Response(error.message, { status: 400 })
+    handleSupabaseError(error, 'fetching video assets')
   }
   
-  return Response.json(data ?? [])
+  return createSuccessResponse(data ?? [])
 }
 
-export async function POST(request: Request) {
+async function postVideoAsset(request: Request) {
   const supabase = await createClient()
   const serviceSupabase = await createServiceClient()
   const body = await request.json().catch(() => null)
-  const parsed = VideoAssetPayload.safeParse(body)
-  if (!parsed.success) return new Response('Invalid payload', { status: 400 })
+  const parsed = VideoAsset.parse(body)
 
   // Get current user profile
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return new Response('Unauthorized', { status: 401 })
+  const user = await requireAuth(supabase)
 
   const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single()
-  if (!profile) return new Response('Profile not found', { status: 404 })
+  if (!profile) {
+    handleSupabaseError(new Error('Profile not found'), 'fetching user profile')
+  }
 
   // Resolve team code to id using service client
-  const { data: team } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team).single()
-  if (!team) return new Response('Invalid team code', { status: 400 })
+  const { data: team } = await serviceSupabase.from('teams').select('id').eq('code', parsed.team_id).single()
+  if (!team) {
+    handleSupabaseError(new Error('Invalid team code'), 'validating team code')
+  }
 
   // Validate URL format
   try {
-    new URL(parsed.data.url)
+    new URL(parsed.url)
   } catch {
-    return new Response('Invalid URL format', { status: 400 })
+    handleSupabaseError(new Error('Invalid URL format'), 'validating video URL')
   }
 
-  if (parsed.data.id) {
+  if (parsed.id) {
     // Update
     const { error } = await supabase
       .from('video_assets')
       .update({
-        title: parsed.data.title,
-        url: parsed.data.url,
-        provider: parsed.data.provider,
-        meta: parsed.data.meta,
+        title: parsed.title,
+        url: parsed.url,
+        provider: parsed.provider || 'veo3',
+        meta: parsed.meta || {},
       })
-      .eq('id', parsed.data.id)
-    if (error) return new Response(error.message, { status: 400 })
-    // If team2 provided on update, insert a second record for team2 (best-effort)
-    if (parsed.data.team2 && parsed.data.team2 !== parsed.data.team) {
-      const { data: t2 } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team2).maybeSingle()
-      if (t2) {
-        await serviceSupabase
-          .from('video_assets')
-          .insert({
-            team_id: t2.id,
-            title: parsed.data.title,
-            url: parsed.data.url,
-            provider: parsed.data.provider,
-            meta: parsed.data.meta,
-            created_by: profile.id,
-          })
-      }
+      .eq('id', parsed.id)
+    if (error) {
+      handleSupabaseError(error, 'updating video asset')
     }
-    return Response.json({ ok: true, id: parsed.data.id })
+    return createSuccessResponse({ ok: true, id: parsed.id })
   } else {
     // Insert
     const rows: any[] = [
       {
         team_id: team.id,
-        title: parsed.data.title,
-        url: parsed.data.url,
-        provider: parsed.data.provider,
-        meta: parsed.data.meta,
+        title: parsed.title,
+        url: parsed.url,
+        provider: parsed.provider || 'veo3',
+        meta: parsed.meta || {},
         created_by: profile.id,
       },
     ]
-    if (parsed.data.team2 && parsed.data.team2 !== parsed.data.team) {
-      const { data: t2 } = await serviceSupabase.from('teams').select('id').eq('code', parsed.data.team2).maybeSingle()
-      if (t2) {
-        rows.push({
-          team_id: t2.id,
-          title: parsed.data.title,
-          url: parsed.data.url,
-          provider: parsed.data.provider,
-          meta: parsed.data.meta,
-          created_by: profile.id,
-        })
-      }
-    }
     const { data, error } = await serviceSupabase
       .from('video_assets')
       .insert(rows)
       .select('id')
-    if (error) return new Response(error.message, { status: 400 })
+    if (error) {
+      handleSupabaseError(error, 'creating video asset')
+    }
     const ids = Array.isArray(data) ? data.map((r: any) => r.id) : (data?.id ? [data.id] : [])
-    return Response.json({ ok: true, ids })
+    return createSuccessResponse({ ok: true, ids })
   }
 }
 
-export async function DELETE(request: Request) {
+async function deleteVideoAsset(request: Request) {
   const supabase = await createClient()
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
-  if (!id) return new Response('id required', { status: 400 })
+  if (!id) {
+    handleSupabaseError(new Error('id required'), 'validating delete request')
+  }
   
   const { error } = await supabase.from('video_assets').delete().eq('id', id)
-  if (error) return new Response(error.message, { status: 400 })
-  return Response.json({ ok: true })
+  if (error) {
+    handleSupabaseError(error, 'deleting video asset')
+  }
+  return createSuccessResponse({ ok: true })
 }
+
+export const GET = withErrorHandling(getVideoAssets)
+export const POST = withErrorHandling(postVideoAsset)
+export const DELETE = withErrorHandling(deleteVideoAsset)

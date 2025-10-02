@@ -1,37 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse, requireAuth } from '@/lib/api-helpers'
+import { AttendanceBody, AttendanceEntry, TeamQuery, DateQuery, PlayerQuery } from '@/lib/zod'
 
-const AttendanceEntry = z.object({
-  player_id: z.string().uuid(),
-  team_code: z.string(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  status: z.enum(['present', 'absent', 'late', 'excused']),
-  notes: z.string().optional()
-})
-
-const Body = z.object({
-  entries: z.array(AttendanceEntry).min(1)
-})
-
-export async function POST(request: Request) {
-  const json = await request.json().catch(() => null)
-  const parsed = Body.safeParse(json)
-  
-  if (!parsed.success) {
-    return new Response('Invalid payload', { status: 400 })
-  }
-
+async function postAttendance(request: Request) {
   const supabase = await createClient()
-
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return new Response('Unauthorized', { status: 401 })
-  }
+  const user = await requireAuth(supabase)
+  
+  const body = await request.json().catch(() => null)
+  const parsed = AttendanceBody.parse(body)
 
   const results: Array<{ player_id: string; date: string; status: 'inserted'|'updated'|'skipped'; reason?: string }> = []
 
-  for (const entry of parsed.data.entries) {
+  for (const entry of parsed.entries) {
     // Get team ID
     let teamId: string;
     
@@ -44,13 +24,7 @@ export async function POST(request: Request) {
         .single()
 
       if (playerError || !player) {
-        results.push({ 
-          player_id: entry.player_id, 
-          date: entry.date, 
-          status: 'skipped', 
-          reason: 'Player not found' 
-        })
-        continue
+        handleSupabaseError(playerError, 'fetching player for attendance')
       }
 
       const { data: team, error: teamError } = await supabase
@@ -60,13 +34,7 @@ export async function POST(request: Request) {
         .single()
 
       if (teamError || !team) {
-        results.push({ 
-          player_id: entry.player_id, 
-          date: entry.date, 
-          status: 'skipped', 
-          reason: 'Player team not found' 
-        })
-        continue
+        handleSupabaseError(teamError, 'fetching player team for attendance')
       }
       
       teamId = team.id;
@@ -78,13 +46,7 @@ export async function POST(request: Request) {
         .single()
 
       if (teamError || !team) {
-        results.push({ 
-          player_id: entry.player_id, 
-          date: entry.date, 
-          status: 'skipped', 
-          reason: 'Team not found' 
-        })
-        continue
+        handleSupabaseError(teamError, 'fetching team for attendance')
       }
       
       teamId = team.id;
@@ -111,12 +73,7 @@ export async function POST(request: Request) {
         .eq('id', existing.id)
 
       if (error) {
-        results.push({ 
-          player_id: entry.player_id, 
-          date: entry.date, 
-          status: 'skipped', 
-          reason: error.message 
-        })
+        handleSupabaseError(error, 'updating attendance')
       } else {
         results.push({ 
           player_id: entry.player_id, 
@@ -138,12 +95,7 @@ export async function POST(request: Request) {
         })
 
       if (error) {
-        results.push({ 
-          player_id: entry.player_id, 
-          date: entry.date, 
-          status: 'skipped', 
-          reason: error.message 
-        })
+        handleSupabaseError(error, 'inserting attendance')
       } else {
         results.push({ 
           player_id: entry.player_id, 
@@ -154,18 +106,14 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ ok: true, results })
+  return createSuccessResponse({ ok: true, results })
 }
 
-export async function GET(request: Request) {
+async function getAttendance(request: Request) {
   const { searchParams } = new URL(request.url)
-  const teamCode = searchParams.get('team')
-  const date = searchParams.get('date')
+  const { team: teamCode } = TeamQuery.parse({ team: searchParams.get('team') })
+  const { date } = DateQuery.parse({ date: searchParams.get('date') })
   const playerId = searchParams.get('player_id')
-  
-  if (!teamCode || !date) {
-    return new Response('team and date query params required', { status: 400 })
-  }
 
   const supabase = await createClient()
 
@@ -189,7 +137,7 @@ export async function GET(request: Request) {
       .single()
 
     if (teamError || !team) {
-      return new Response('Team not found', { status: 404 })
+      handleSupabaseError(teamError, 'fetching team for attendance query')
     }
 
     query = query.eq('team_id', team.id)
@@ -204,8 +152,11 @@ export async function GET(request: Request) {
   const { data, error } = await query
 
   if (error) {
-    return new Response(error.message, { status: 400 })
+    handleSupabaseError(error, 'fetching attendance records')
   }
 
-  return Response.json(data || [])
+  return createSuccessResponse(data || [])
 }
+
+export const POST = withErrorHandling(postAttendance)
+export const GET = withErrorHandling(getAttendance)

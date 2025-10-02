@@ -1,16 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers'
+import { GamePayload, TeamQuery, MonthQuery } from '@/lib/zod'
 
-const GamePayload = z.object({
-  id: z.string().uuid().optional(),
-  home_team: z.string().min(1), // team code
-  away_team: z.string().min(1), // team code
-  kickoff_at: z.string(), // ISO datetime
-  location: z.string().optional(),
-  notes: z.string().optional(),
-})
-
-export async function GET(request: Request) {
+async function getGames(request: Request) {
   const { searchParams } = new URL(request.url)
   const teamCode = searchParams.get('team')
   const month = searchParams.get('month') // YYYY-MM
@@ -40,37 +32,42 @@ export async function GET(request: Request) {
   }
 
   const { data, error } = await query
-  if (error) return new Response(error.message, { status: 400 })
-  return Response.json(data ?? [])
+  if (error) {
+    handleSupabaseError(error, 'fetching games')
+  }
+  return createSuccessResponse(data ?? [])
 }
 
-export async function POST(request: Request) {
+async function postGame(request: Request) {
   const supabase = await createClient()
   const body = await request.json().catch(() => null)
-  const parsed = GamePayload.safeParse(body)
-  if (!parsed.success) return new Response('Invalid payload', { status: 400 })
+  const parsed = GamePayload.parse(body)
 
   // Resolve team codes to ids
   const { data: teams } = await supabase.from('teams').select('id, code')
   const codeToId = new Map<string,string>((teams ?? []).map(t => [t.code, t.id]))
-  const homeId = codeToId.get(parsed.data.home_team)
-  const awayId = codeToId.get(parsed.data.away_team)
-  if (!homeId || !awayId) return new Response('Invalid team codes', { status: 400 })
+  const homeId = codeToId.get(parsed.home_team)
+  const awayId = codeToId.get(parsed.away_team)
+  if (!homeId || !awayId) {
+    handleSupabaseError(new Error('Invalid team codes'), 'validating team codes')
+  }
 
-  if (parsed.data.id) {
+  if (parsed.id) {
     // Update
     const { error } = await supabase
       .from('games')
       .update({
         home_team: homeId,
         away_team: awayId,
-        kickoff_at: parsed.data.kickoff_at,
-        location: parsed.data.location,
-        notes: parsed.data.notes,
+        kickoff_at: parsed.kickoff_at,
+        location: parsed.location,
+        notes: parsed.notes,
       })
-      .eq('id', parsed.data.id)
-    if (error) return new Response(error.message, { status: 400 })
-    return Response.json({ ok: true, id: parsed.data.id })
+      .eq('id', parsed.id)
+    if (error) {
+      handleSupabaseError(error, 'updating game')
+    }
+    return createSuccessResponse({ ok: true, id: parsed.id })
   } else {
     // Insert
     const { data, error } = await supabase
@@ -78,25 +75,35 @@ export async function POST(request: Request) {
       .insert({
         home_team: homeId,
         away_team: awayId,
-        kickoff_at: parsed.data.kickoff_at,
-        location: parsed.data.location,
-        notes: parsed.data.notes,
+        kickoff_at: parsed.kickoff_at,
+        location: parsed.location,
+        notes: parsed.notes,
       })
       .select('id')
       .single()
-    if (error) return new Response(error.message, { status: 400 })
-    return Response.json({ ok: true, id: data!.id })
+    if (error) {
+      handleSupabaseError(error, 'creating game')
+    }
+    return createSuccessResponse({ ok: true, id: data!.id })
   }
 }
 
-export async function DELETE(request: Request) {
+async function deleteGame(request: Request) {
   const supabase = await createClient()
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
-  if (!id) return new Response('id required', { status: 400 })
+  if (!id) {
+    handleSupabaseError(new Error('id required'), 'validating delete request')
+  }
   const { error } = await supabase.from('games').delete().eq('id', id)
-  if (error) return new Response(error.message, { status: 400 })
-  return Response.json({ ok: true })
+  if (error) {
+    handleSupabaseError(error, 'deleting game')
+  }
+  return createSuccessResponse({ ok: true })
 }
+
+export const GET = withErrorHandling(getGames)
+export const POST = withErrorHandling(postGame)
+export const DELETE = withErrorHandling(deleteGame)
 
 

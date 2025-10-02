@@ -1,13 +1,6 @@
-import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-
-const Row = z.object({
-  full_name: z.string().min(1),
-  primary_position: z.string().min(1), // Accept any string, will be mapped
-  current_team: z.enum(['1s','2s','3s','4s','5s','Devs']),
-})
-
-const Body = z.object({ rows: z.array(Row).min(1) })
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers'
+import { PlayerImportBody } from '@/lib/zod'
 
 const POS_MAP: Record<string, 'GK'|'DEF'|'MID'|'WNG'|'ST'> = {
   Goalkeeper: 'GK',
@@ -17,12 +10,9 @@ const POS_MAP: Record<string, 'GK'|'DEF'|'MID'|'WNG'|'ST'> = {
   Striker: 'ST',
 }
 
-export async function POST(req: Request) {
+async function importPlayers(req: Request) {
   const json = await req.json().catch(() => null)
-  const parsed = Body.safeParse(json)
-  if (!parsed.success) {
-    return new Response('Invalid payload', { status: 400 })
-  }
+  const parsed = PlayerImportBody.parse(json)
 
   const supabase = await createClient()
 
@@ -31,12 +21,14 @@ export async function POST(req: Request) {
     .from('teams')
     .select('id, code')
 
-  if (teamsErr) return new Response(teamsErr.message, { status: 400 })
+  if (teamsErr) {
+    handleSupabaseError(teamsErr, 'fetching teams for import')
+  }
   const codeToId = new Map<string,string>(teams!.map(t => [t.code, t.id]))
 
   const results: Array<{ full_name: string; status: 'inserted'|'updated'|'skipped'; reason?: string }> = []
 
-  for (const row of parsed.data.rows) {
+  for (const row of parsed.rows) {
     const teamId = codeToId.get(row.current_team)
     if (!teamId) {
       results.push({ full_name: row.full_name, status: 'skipped', reason: 'team not found' })
@@ -70,8 +62,7 @@ export async function POST(req: Request) {
         .select('id')
         .single()
       if (error) {
-        results.push({ full_name: row.full_name, status: 'skipped', reason: error.message })
-        continue
+        handleSupabaseError(error, 'creating player during import')
       }
       playerId = created!.id
       results.push({ full_name: row.full_name, status: 'inserted' })
@@ -83,8 +74,7 @@ export async function POST(req: Request) {
         .eq('id', playerId)
 
       if (updateErr) {
-        console.log('Update current_team error:', updateErr)
-        results.push({ full_name: row.full_name, status: 'skipped', reason: updateErr.message })
+        handleSupabaseError(updateErr, 'updating player team during import')
       } else {
         console.log('Successfully updated current_team for', row.full_name, 'to:', row.current_team)
         results.push({ full_name: row.full_name, status: 'updated' })
@@ -92,7 +82,9 @@ export async function POST(req: Request) {
     }
   }
 
-  return Response.json({ ok: true, results })
+  return createSuccessResponse({ ok: true, results })
 }
+
+export const POST = withErrorHandling(importPlayers)
 
 

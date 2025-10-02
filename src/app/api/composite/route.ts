@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers';
+import { TeamQuery } from '@/lib/zod';
 
 function parseIds(param: string | null): string[] {
   if (!param) return [];
@@ -8,13 +10,13 @@ function parseIds(param: string | null): string[] {
     .filter((s) => s.length > 0);
 }
 
-export async function GET(request: Request) {
+async function getComposite(request: Request) {
   const { searchParams } = new URL(request.url);
   const teamCode = searchParams.get("team") ?? "all";
   const ids = parseIds(searchParams.get("ids"));
 
   if (ids.length === 0) {
-    return new Response("ids query param required (comma-separated player ids)", { status: 400 });
+    handleSupabaseError(new Error("ids query param required (comma-separated player ids)"), 'validating composite request');
   }
 
   const supabase = await createClient();
@@ -24,13 +26,17 @@ export async function GET(request: Request) {
     .from("players")
     .select("id, full_name, primary_position, current_team")
     .in("id", ids);
-  if (playersErr) return new Response(playersErr.message, { status: 400 });
+  if (playersErr) {
+    handleSupabaseError(playersErr, 'fetching players for composite');
+  }
 
   // Load stat definitions
   const { data: statDefs, error: defsErr } = await supabase
     .from("stat_definitions")
     .select("key, label, higher_is_better");
-  if (defsErr) return new Response(defsErr.message, { status: 400 });
+  if (defsErr) {
+    handleSupabaseError(defsErr, 'fetching stat definitions for composite');
+  }
 
   // Load player stats for selected players, scoped by team if provided
   let statsQuery = supabase
@@ -44,12 +50,16 @@ export async function GET(request: Request) {
       .select("id")
       .eq("code", teamCode)
       .single();
-    if (teamErr || !team) return new Response("Team not found", { status: 404 });
+    if (teamErr || !team) {
+      handleSupabaseError(teamErr, 'fetching team for composite');
+    }
     statsQuery = statsQuery.eq("team_id", team.id);
   }
 
   const { data: statsRows, error: statsErr } = await statsQuery;
-  if (statsErr) return new Response(statsErr.message, { status: 400 });
+  if (statsErr) {
+    handleSupabaseError(statsErr, 'fetching player stats for composite');
+  }
 
   // Build raw matrix { playerId: { statKey: value } }
   const raw: Record<string, Record<string, number>> = {};
@@ -89,7 +99,7 @@ export async function GET(request: Request) {
     }
   }
 
-  return Response.json({
+  return createSuccessResponse({
     players,
     statKeys,
     statDefinitions: statDefs,
@@ -97,5 +107,7 @@ export async function GET(request: Request) {
     normalized,
   });
 }
+
+export const GET = withErrorHandling(getComposite);
 
 

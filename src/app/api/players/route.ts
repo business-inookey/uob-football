@@ -1,14 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse, ValidationError } from '@/lib/api-helpers'
+import { TeamQuery } from '@/lib/zod'
 
-export async function GET(request: Request) {
+async function getPlayers(request: Request) {
   const { searchParams } = new URL(request.url)
-  const teamCode = searchParams.get('team')
-  
-  if (!teamCode) {
-    return new Response('team query param required', { status: 400 })
-  }
+  const { team: teamCode } = TeamQuery.parse({ team: searchParams.get('team') })
 
-  // Create Supabase client with cookies for authentication
   const supabase = await createClient()
 
   // Temporarily bypass authentication to test data access
@@ -28,8 +25,7 @@ export async function GET(request: Request) {
       .order('current_team, full_name')
 
     if (error) {
-      console.log('Error fetching all players:', error)
-      return new Response(error.message, { status: 400 })
+      handleSupabaseError(error, 'fetching all players')
     }
     players = data || []
   } else {
@@ -41,12 +37,13 @@ export async function GET(request: Request) {
       .order('full_name')
 
     if (error) {
-      console.log('Error fetching team players:', error)
-      return new Response(error.message, { status: 400 })
+      handleSupabaseError(error, 'fetching team players')
     }
     players = data || []
   }
 
   console.log('API: Returning', players.length, 'players for team', teamCode)
-  return Response.json(players)
+  return createSuccessResponse(players)
 }
+
+export const GET = withErrorHandling(getPlayers)

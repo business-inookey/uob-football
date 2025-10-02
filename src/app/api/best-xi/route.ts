@@ -1,9 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers'
 import { bestXI, type Formation, type PlayerRow } from '@/lib/selection'
+import { BestXIQuery } from '@/lib/zod'
 
-const FormationObj = z.object({ gk: z.number().int().min(1).max(1), def: z.number().int().min(0).max(10), mid: z.number().int().min(0).max(10), wng: z.number().int().min(0).max(10), st: z.number().int().min(0).max(10) })
-const Body = z.object({
+const FormationObj = z.object({ 
+  gk: z.number().int().min(1).max(1), 
+  def: z.number().int().min(0).max(10), 
+  mid: z.number().int().min(0).max(10), 
+  wng: z.number().int().min(0).max(10), 
+  st: z.number().int().min(0).max(10) 
+})
+
+const BestXIBody = z.object({
   team: z.string().min(1),
   formation: z.union([
     z.string().regex(/^1-\d-\d-\d$|^\d-\d-\d$/),
@@ -27,16 +36,15 @@ function parseFormationInput(input: string | Formation): Formation {
   return { gk, def, mid, wng, st }
 }
 
-export async function POST(request: Request) {
+async function postBestXI(request: Request) {
   const json = await request.json().catch(() => null)
-  const parsed = Body.safeParse(json ?? {
+  const parsed = BestXIBody.parse(json ?? {
     team: new URL(request.url).searchParams.get('team') || '1s',
     formation: new URL(request.url).searchParams.get('formation') || '4-3-3'
   })
-  if (!parsed.success) return new Response('Invalid payload', { status: 400 })
 
-  const teamCode = parsed.data.team
-  const formation = parseFormationInput(parsed.data.formation as any)
+  const teamCode = parsed.team
+  const formation = parseFormationInput(parsed.formation as any)
 
   const supabase = await createClient()
 
@@ -46,14 +54,18 @@ export async function POST(request: Request) {
     .select('id')
     .eq('code', teamCode)
     .maybeSingle()
-  if (teamErr || !team) return new Response('Team not found', { status: 404 })
+  if (teamErr || !team) {
+    handleSupabaseError(teamErr, 'fetching team for best XI')
+  }
 
   // Get composite scores (from view) and players joined
   const { data: rows, error: compErr } = await supabase
     .from('v_player_composite')
     .select('player_id, team_id, composite_score, players:players!inner(id, full_name, primary_position)')
     .eq('team_id', team.id)
-  if (compErr) return new Response(compErr.message, { status: 400 })
+  if (compErr) {
+    handleSupabaseError(compErr, 'fetching composite scores for best XI')
+  }
 
   // Fetch speed for tie-breaker, if defined
   const { data: speedRows } = await supabase
@@ -111,7 +123,9 @@ export async function POST(request: Request) {
     expected: formation.gk + formation.def + formation.mid + formation.wng + formation.st,
     pool: players.length,
   }
-  return Response.json({ team: teamCode, formation, xi, counts })
+  return createSuccessResponse({ team: teamCode, formation, xi, counts })
 }
+
+export const POST = withErrorHandling(postBestXI)
 
 

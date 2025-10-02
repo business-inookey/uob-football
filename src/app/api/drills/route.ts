@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireCoach } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers';
+import { UUID } from '@/lib/zod';
 
 const CreateSessionSchema = z.object({
   team: z.string().min(1),
@@ -10,19 +12,18 @@ const CreateSessionSchema = z.object({
 });
 
 const RecordLapSchema = z.object({
-  sessionId: z.string().uuid(),
-  playerId: z.string().uuid(),
+  sessionId: UUID,
+  playerId: UUID,
   lapIndex: z.number().int().min(1),
   lapMs: z.number().int().min(1),
 });
 
-export async function POST(request: NextRequest) {
-  try {
-    const { user, profile, teams: memberships } = await requireCoach();
-    const supabase = await createClient();
-    
-    const body = await request.json();
-    const { action } = body;
+async function postDrill(request: NextRequest) {
+  const { user, profile, teams: memberships } = await requireCoach();
+  const supabase = await createClient();
+  
+  const body = await request.json();
+  const { action } = body;
 
     if (action === 'create_session') {
       const { team, drillName, notes } = CreateSessionSchema.parse(body);
@@ -45,9 +46,11 @@ export async function POST(request: NextRequest) {
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleSupabaseError(error, 'creating drill session');
+      }
 
-      return NextResponse.json({ ok: true, sessionId: session.id });
+      return createSuccessResponse({ ok: true, sessionId: session.id });
 
     } else if (action === 'record_lap') {
       const { sessionId, playerId, lapIndex, lapMs } = RecordLapSchema.parse(body);
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (sessionErr || !sessionRow) {
-        return NextResponse.json({ error: 'Access denied to session' }, { status: 403 });
+        handleSupabaseError(sessionErr, 'fetching drill session');
       }
 
       const sessionAccess = Array.isArray(memberships) && memberships.some((m: any) => m.team_id === sessionRow.team_id);
@@ -80,25 +83,21 @@ export async function POST(request: NextRequest) {
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleSupabaseError(error, 'recording drill lap');
+      }
 
       // Calculate and update player stats
       await updatePlayerStats(supabase, playerId, lapMs, sessionRow.team_id, profile.id);
 
-      return NextResponse.json({ ok: true, lapId: lap.id });
+      return createSuccessResponse({ ok: true, lapId: lap.id });
 
     } else {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      handleSupabaseError(new Error('Invalid action'), 'validating drill action');
     }
-
-  } catch (error) {
-    console.error('Drills API error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
 }
+
+export const POST = withErrorHandling(postDrill);
 
 async function updatePlayerStats(
   supabase: Awaited<ReturnType<typeof createClient>>, 

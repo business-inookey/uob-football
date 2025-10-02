@@ -8,7 +8,15 @@
     "start": "next start",
     "lint": "eslint",
     "migrate": "tsx scripts/migrate-simple.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:api": "vitest run src/test/api",
+    "test:rls": "vitest run src/test/rls",
+    "test:unit": "vitest run src/test/unit",
+    "test:accessibility": "vitest run src/test/accessibility"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -34,15 +42,26 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.10.2",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/supertest": "^6.0.3",
+    "@vitest/ui": "^3.2.4",
+    "axe-core": "^4.10.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "jest-environment-jsdom": "^30.2.0",
+    "jsdom": "^26.1.0",
+    "supertest": "^7.1.4",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

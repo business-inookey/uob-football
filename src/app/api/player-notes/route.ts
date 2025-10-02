@@ -2,30 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireLeadCoach } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers';
+import { PlayerNote, UUID } from '@/lib/zod';
 
 const CreateNoteSchema = z.object({
-  playerId: z.string().uuid(),
-  teamId: z.string().uuid(),
+  playerId: UUID,
+  teamId: UUID,
   note: z.string().min(1).max(1000),
 });
 
 const UpdateNoteSchema = z.object({
-  noteId: z.string().uuid(),
+  noteId: UUID,
   note: z.string().min(1).max(1000),
 });
 
-export async function GET(request: NextRequest) {
-  try {
-    await requireLeadCoach();
-    const supabase = await createClient();
-    
-    const { searchParams } = new URL(request.url);
-    const playerId = searchParams.get('player_id');
-    const teamId = searchParams.get('team_id');
+async function getPlayerNotes(request: NextRequest) {
+  await requireLeadCoach();
+  const supabase = await createClient();
+  
+  const { searchParams } = new URL(request.url);
+  const playerId = searchParams.get('player_id');
+  const teamId = searchParams.get('team_id');
 
-    if (!playerId || !teamId) {
-      return NextResponse.json({ error: 'player_id and team_id are required' }, { status: 400 });
-    }
+  if (!playerId || !teamId) {
+    handleSupabaseError(new Error('player_id and team_id are required'), 'validating query parameters');
+  }
 
     // Fetch notes for the specific player and team
     const { data: notes, error } = await supabase
@@ -58,29 +59,19 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    if (error) {
-      console.error('Error fetching player notes:', error);
-      return NextResponse.json({ error: 'Failed to fetch notes' }, { status: 500 });
-    }
-
-    return NextResponse.json({ notes: notesWithProfiles });
-
-  } catch (error) {
-    console.error('Player notes GET error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+  if (error) {
+    handleSupabaseError(error, 'fetching player notes');
   }
+
+  return createSuccessResponse({ notes: notesWithProfiles });
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { user, profile } = await requireLeadCoach();
-    const supabase = await createClient();
-    
-    const body = await request.json();
-    const { playerId, teamId, note } = CreateNoteSchema.parse(body);
+async function postPlayerNote(request: NextRequest) {
+  const { user, profile } = await requireLeadCoach();
+  const supabase = await createClient();
+  
+  const body = await request.json();
+  const { playerId, teamId, note } = CreateNoteSchema.parse(body);
 
     // Create new note
     const { data: newNote, error } = await supabase
@@ -107,29 +98,19 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    if (error) {
-      console.error('Error creating player note:', error);
-      return NextResponse.json({ error: 'Failed to create note' }, { status: 500 });
-    }
-
-    return NextResponse.json({ note: noteWithProfile });
-
-  } catch (error) {
-    console.error('Player notes POST error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+  if (error) {
+    handleSupabaseError(error, 'creating player note');
   }
+
+  return createSuccessResponse({ note: noteWithProfile });
 }
 
-export async function PUT(request: NextRequest) {
-  try {
-    const { user, profile } = await requireLeadCoach();
-    const supabase = await createClient();
-    
-    const body = await request.json();
-    const { noteId, note } = UpdateNoteSchema.parse(body);
+async function putPlayerNote(request: NextRequest) {
+  const { user, profile } = await requireLeadCoach();
+  const supabase = await createClient();
+  
+  const body = await request.json();
+  const { noteId, note } = UpdateNoteSchema.parse(body);
 
     // Update existing note
     const { data: updatedNote, error } = await supabase
@@ -155,33 +136,23 @@ export async function PUT(request: NextRequest) {
       }
     };
 
-    if (error) {
-      console.error('Error updating player note:', error);
-      return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
-    }
-
-    return NextResponse.json({ note: noteWithProfile });
-
-  } catch (error) {
-    console.error('Player notes PUT error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+  if (error) {
+    handleSupabaseError(error, 'updating player note');
   }
+
+  return createSuccessResponse({ note: noteWithProfile });
 }
 
-export async function DELETE(request: NextRequest) {
-  try {
-    await requireLeadCoach();
-    const supabase = await createClient();
-    
-    const { searchParams } = new URL(request.url);
-    const noteId = searchParams.get('id');
+async function deletePlayerNote(request: NextRequest) {
+  await requireLeadCoach();
+  const supabase = await createClient();
+  
+  const { searchParams } = new URL(request.url);
+  const noteId = searchParams.get('id');
 
-    if (!noteId) {
-      return NextResponse.json({ error: 'note id is required' }, { status: 400 });
-    }
+  if (!noteId) {
+    handleSupabaseError(new Error('note id is required'), 'validating delete request');
+  }
 
     // Delete note
     const { error } = await supabase
@@ -189,18 +160,14 @@ export async function DELETE(request: NextRequest) {
       .delete()
       .eq('id', noteId);
 
-    if (error) {
-      console.error('Error deleting player note:', error);
-      return NextResponse.json({ error: 'Failed to delete note' }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true });
-
-  } catch (error) {
-    console.error('Player notes DELETE error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+  if (error) {
+    handleSupabaseError(error, 'deleting player note');
   }
+
+  return createSuccessResponse({ success: true });
 }
+
+export const GET = withErrorHandling(getPlayerNotes);
+export const POST = withErrorHandling(postPlayerNote);
+export const PUT = withErrorHandling(putPlayerNote);
+export const DELETE = withErrorHandling(deletePlayerNote);

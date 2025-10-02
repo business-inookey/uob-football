@@ -1,21 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireLeadCoach } from '@/lib/auth'
-import { z } from 'zod'
+import { withErrorHandling, handleSupabaseError, createSuccessResponse } from '@/lib/api-helpers'
+import { WeightsBody, TeamQuery } from '@/lib/zod'
 
-const WeightItem = z.object({
-  stat_key: z.string().min(1),
-  weight: z.number().min(0.5).max(1.5),
-})
-
-const PostBody = z.object({
-  team_code: z.string().min(1),
-  weights: z.array(WeightItem).min(1),
-})
-
-export async function GET(request: Request) {
+async function getWeights(request: Request) {
   const { searchParams } = new URL(request.url)
-  const teamCode = searchParams.get('team')
-  if (!teamCode) return new Response('team query param required', { status: 400 })
+  const { team: teamCode } = TeamQuery.parse({ team: searchParams.get('team') })
 
   const supabase = await createClient()
 
@@ -25,26 +15,29 @@ export async function GET(request: Request) {
     .eq('code', teamCode)
     .maybeSingle()
 
-  if (teamErr || !team) return new Response('Team not found', { status: 404 })
+  if (teamErr || !team) {
+    handleSupabaseError(teamErr, 'fetching team for weights')
+  }
 
   const { data, error } = await supabase
     .from('team_weights')
     .select('stat_key, weight')
     .eq('team_id', team.id)
 
-  if (error) return new Response(error.message, { status: 400 })
-  return Response.json({ team: { code: team.code, name: team.name }, weights: data ?? [] })
+  if (error) {
+    handleSupabaseError(error, 'fetching team weights')
+  }
+  return createSuccessResponse({ team: { code: team.code, name: team.name }, weights: data ?? [] })
 }
 
-export async function POST(request: Request) {
+async function postWeights(request: Request) {
   // Lead-coach-only; also enforced by RLS
   const { teams } = await requireLeadCoach()
 
   const json = await request.json().catch(() => null)
-  const parsed = PostBody.safeParse(json)
-  if (!parsed.success) return new Response('Invalid payload', { status: 400 })
+  const parsed = WeightsBody.parse(json)
 
-  const { team_code, weights } = parsed.data
+  const { team_code, weights } = parsed
 
   // Ensure caller is lead for this team
   const hasLeadForTeam = teams.some((t: any) => t.teams?.code === team_code || t.team_id)
@@ -58,7 +51,9 @@ export async function POST(request: Request) {
     .eq('code', team_code)
     .maybeSingle()
 
-  if (teamErr || !team) return new Response('Team not found', { status: 404 })
+  if (teamErr || !team) {
+    handleSupabaseError(teamErr, 'fetching team for weights update')
+  }
 
   const rows = weights.map(w => ({ team_id: team.id, stat_key: w.stat_key, weight: w.weight }))
 
@@ -66,8 +61,13 @@ export async function POST(request: Request) {
     .from('team_weights')
     .upsert(rows, { onConflict: 'team_id,stat_key' })
 
-  if (error) return new Response(error.message, { status: 400 })
-  return Response.json({ ok: true })
+  if (error) {
+    handleSupabaseError(error, 'updating team weights')
+  }
+  return createSuccessResponse({ ok: true })
 }
+
+export const GET = withErrorHandling(getWeights)
+export const POST = withErrorHandling(postWeights)
 
 
