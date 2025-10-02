@@ -1,14 +1,28 @@
 import { NextRequest } from 'next/server'
 import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { PlayerRow, Formation } from '@/lib/selection'
+
+type ExportRequestBody = {
+  team: string;
+  formation: Formation;
+  xi: {
+    gk: PlayerRow[];
+    def: PlayerRow[];
+    mid: PlayerRow[];
+    wng: PlayerRow[];
+    st: PlayerRow[];
+    orderedXI: PlayerRow[];
+  };
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => null) as BestXIPlayer[]
+    const body = await req.json().catch(() => null) as ExportRequestBody
     console.log('PDF Export Request Body:', JSON.stringify(body, null, 2))
     
     const team = body?.team || '1s'
     const formation = body?.formation || { gk: 1, def: 4, mid: 3, wng: 0, st: 3 }
-    let xi = body?.xi as Array<string>
+    let xi = body?.xi?.orderedXI as PlayerRow[]
 
     if (!body) {
       return new Response('No request body provided', { status: 400 })
@@ -16,19 +30,15 @@ export async function POST(req: NextRequest) {
 
     // Normalize xi to required shape
     if (!Array.isArray(xi)) {
-      const alt = body?.orderedXI || body?.xi?.orderedXI
-      if (Array.isArray(alt)) xi = alt
-    }
-    if (!Array.isArray(xi)) {
       return new Response('Invalid XI payload', { status: 400 })
     }
     const normalized = xi
       .filter(Boolean)
-      .map((p: BestXIPlayer) => ({
-        full_name: p.full_name ?? p.name ?? String(p.id ?? '').slice(0, 8),
-        primary_position: p.primary_position ?? p.pos ?? 'MID',
+      .map((p: PlayerRow) => ({
+        full_name: p.full_name ?? String(p.id ?? '').slice(0, 8),
+        primary_position: p.primary_position ?? 'MID',
       }))
-      .filter((p: BestXIPlayer) => typeof p.full_name === 'string' && typeof p.primary_position === 'string')
+      .filter((p) => typeof p.full_name === 'string' && typeof p.primary_position === 'string')
     if (normalized.length === 0) {
       return new Response('XI array is empty after normalization', { status: 400 })
     }

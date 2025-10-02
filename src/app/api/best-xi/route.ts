@@ -45,7 +45,7 @@ async function postBestXI(request: Request) {
   })
 
   const teamCode = parsed.team
-  const formation = parseFormationInput(parsed.formation as BestXIPlayer[])
+  const formation = parseFormationInput(parsed.formation)
 
   const supabase = await createClient()
 
@@ -77,7 +77,7 @@ async function postBestXI(request: Request) {
 
   const speedMap = new Map<string, number>((speedRows ?? []).map(r => [r.player_id, r.value as unknown as number]))
 
-  let players: PlayerRow[] = (rows ?? []).map((r: BestXIPlayer) => ({
+  let players: PlayerRow[] = (rows ?? []).map((r: any) => ({
     id: r.players.id,
     full_name: r.players.full_name,
     primary_position: r.players.primary_position,
@@ -95,8 +95,8 @@ async function postBestXI(request: Request) {
 
     const existingIds = new Set(players.map(p => p.id));
     const additionalPlayers = (teamPlayers ?? [])
-      .filter((p: BestXIPlayer) => !existingIds.has(p.id))
-      .map((p: BestXIPlayer) => ({
+      .filter((p) => !existingIds.has(p.id))
+      .map((p) => ({
         id: p.id,
         full_name: p.full_name,
         primary_position: p.primary_position,
