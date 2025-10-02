@@ -2,6 +2,11 @@ import { requireCoach } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AttendanceClient from "./AttendanceClient";
 
+interface Team {
+  code: string;
+  name: string;
+}
+
 async function getTeams() {
   const supabase = await createClient();
   const { data: teams } = await supabase
@@ -15,13 +20,13 @@ async function getTeams() {
 async function getCoachTeams() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [] as Team[][];
+  if (!user) return [] as Team[];
   const { data: coach } = await supabase
     .from('coaches')
     .select('id')
     .eq('profile_id', user.id)
     .single();
-  if (!coach) return [] as string[];
+  if (!coach) return [] as Team[];
   const { data: coachTeam } = await supabase
     .from('coach_team')
     .select('role, teams(code, name)')
@@ -37,7 +42,7 @@ async function getCoachTeams() {
     return allTeams || [];
   }
   
-  return coachTeam?.teams ? [coachTeam.teams] : [];
+  return coachTeam?.teams ? coachTeam.teams : [];
 }
 
 export default async function AttendancePage({ searchParams }: { searchParams?: Promise<{ team?: string; date?: string }> }) {
