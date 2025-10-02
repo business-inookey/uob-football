@@ -28,11 +28,11 @@ export const testConfig = {
 }
 
 export const createTestSupabaseClient = () => {
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = import('@supabase/supabase-js')
   return createClient(testConfig.supabaseUrl, testConfig.supabaseAnonKey)
 }
 
 export const createTestServiceClient = () => {
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = import('@supabase/supabase-js')
   return createClient(testConfig.supabaseUrl, testConfig.supabaseServiceKey)
 }

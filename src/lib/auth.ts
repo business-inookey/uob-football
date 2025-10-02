@@ -5,7 +5,7 @@ export async function ensureProfile() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const isAnon = (user as any).is_anonymous === true || user.app_metadata?.provider === 'anonymous'
+  const isAnon = (user as unknown).is_anonymous === true || user.app_metadata?.provider === 'anonymous'
   if (isAnon) return user
 
   const { data: existing } = await supabase
@@ -70,14 +70,14 @@ export async function requireCoach() {
 export async function requireLeadCoach(teamId?: string) {
   const { user, profile, teams } = await requireCoach()
   
-  const leadTeams = teams.filter((t: any) => t.role === 'lead_coach')
+  const leadTeams = teams.filter((t: unknown) => t.role === 'lead_coach')
   
   if (leadTeams.length === 0) {
     redirect('/unauthorized')
   }
   
   if (teamId) {
-    const hasAccess = leadTeams.some((t: any) => t.team_id === teamId)
+    const hasAccess = leadTeams.some((t: unknown) => t.team_id === teamId)
     if (!hasAccess) {
       redirect('/unauthorized')
     }

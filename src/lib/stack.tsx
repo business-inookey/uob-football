@@ -8,7 +8,7 @@ type StackProps = React.PropsWithChildren<{
 }>;
 
 export function Stack({ as = "div", gap = "gap-3", className = "", children }: StackProps) {
-  const Comp: any = as;
+  const Comp: React.ReactNode = as;
   return <Comp className={`flex flex-col ${gap} ${className}`}>{children}</Comp>;
 }
 

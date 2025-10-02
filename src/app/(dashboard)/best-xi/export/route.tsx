@@ -3,12 +3,12 @@ import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => null) as any
+    const body = await req.json().catch(() => null) as BestXIPlayer[]
     console.log('PDF Export Request Body:', JSON.stringify(body, null, 2))
     
     const team = body?.team || '1s'
     const formation = body?.formation || { gk: 1, def: 4, mid: 3, wng: 0, st: 3 }
-    let xi = body?.xi as Array<any>
+    let xi = body?.xi as Array<string>
 
     if (!body) {
       return new Response('No request body provided', { status: 400 })
@@ -24,11 +24,11 @@ export async function POST(req: NextRequest) {
     }
     const normalized = xi
       .filter(Boolean)
-      .map((p: any) => ({
+      .map((p: BestXIPlayer) => ({
         full_name: p.full_name ?? p.name ?? String(p.id ?? '').slice(0, 8),
         primary_position: p.primary_position ?? p.pos ?? 'MID',
       }))
-      .filter((p: any) => typeof p.full_name === 'string' && typeof p.primary_position === 'string')
+      .filter((p: BestXIPlayer) => typeof p.full_name === 'string' && typeof p.primary_position === 'string')
     if (normalized.length === 0) {
       return new Response('XI array is empty after normalization', { status: 400 })
     }

@@ -6,8 +6,8 @@ import CompareClient from "./CompareClient";
 export default async function ComparePage({ searchParams }: { searchParams?: Promise<{ team?: string; ids?: string }> }) {
   await requireCoach();
   const params = await searchParams;
-  const teamCode = (params as any)?.team || 'all';
-  const rawIds = (params as any)?.ids;
+  const teamCode = (params as Team[])?.team || 'all';
+  const rawIds = (params as Player[])?.ids;
   let selectedIds: string[] = [];
   if (Array.isArray(rawIds)) {
     selectedIds = rawIds as string[];

@@ -30,7 +30,7 @@ export default function CompareClient({ teams, initialTeam, initialSelectedIds }
   const [selectedTeam, setSelectedTeam] = useState(initialTeam);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds.slice(0, 5));
-  const [composite, setComposite] = useState<any>(null);
+  const [composite, setComposite] = useState<Player[]>(null);
   const [loading, setLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -334,7 +334,7 @@ export default function CompareClient({ teams, initialTeam, initialSelectedIds }
               <div className="w-full h-64 sm:h-80">
                 <Radar
                   labels={composite.statKeys}
-                  series={composite.players.map((p: any, idx: number) => ({
+                  series={composite.players.map((p: Player) => ({
                     name: p.full_name,
                     values: composite.statKeys.map((k: string) => composite.normalized[p.id]?.[k] ?? 0),
                     color: undefined,
@@ -353,7 +353,7 @@ export default function CompareClient({ teams, initialTeam, initialSelectedIds }
               <div className="w-full h-64 sm:h-80">
                 <Bars
                   labels={composite.statKeys}
-                  series={composite.players.map((p: any) => ({
+                  series={composite.players.map((p: Player) => ({
                     name: p.full_name,
                     values: composite.statKeys.map((k: string) => composite.normalized[p.id]?.[k] ?? 0),
                   }))}

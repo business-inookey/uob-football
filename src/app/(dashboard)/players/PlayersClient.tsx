@@ -192,7 +192,7 @@ function PlayerCard({
   player: Player;
   getPositionColor: (pos: string) => string;
   getTeamColor: (team: string) => string;
-  router: any;
+  router: Player[];
 }) {
   return (
     <div className="group card p-6 space-y-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">

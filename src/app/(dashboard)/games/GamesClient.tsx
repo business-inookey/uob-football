@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function GamesClient({ teams, team, month, games }: { teams: Array<{ code: string; name: string }>; team: string; month: string; games: any[] }) {
+export default function GamesClient({ teams, team, month, games }: { teams: Array<{ code: string; name: string }>; team: string; month: string; games: Game[][] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState({ team, month });
@@ -137,7 +137,7 @@ export default function GamesClient({ teams, team, month, games }: { teams: Arra
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((g: any) => (
+          {games.map((g: Game) => (
             <GameCard key={g.id} game={g} teams={teams} />
           ))}
         </div>
@@ -167,7 +167,7 @@ function CreateGameButton({ teams }: { teams: Array<{ code: string; name: string
   );
 }
 
-function GameCard({ game, teams }: { game: any; teams: Array<{ code: string; name: string }> }) {
+function GameCard({ game, teams }: { game: Game; teams: Array<{ code: string; name: string }> }) {
   const [editing, setEditing] = useState(false);
   const kickoffDate = new Date(game.kickoff_at);
   const now = new Date();
@@ -281,7 +281,7 @@ function DeleteGameButton({ id }: { id: string }) {
   );
 }
 
-function GameDialog({ initial, teams, onClose }: { initial?: any; teams: Array<{ code: string; name: string }>; onClose: () => void }) {
+function GameDialog({ initial, teams, onClose }: { initial?: Game; teams: Array<{ code: string; name: string }>; onClose: () => void }) {
   const router = useRouter();
   const [form, setForm] = useState({
     id: initial?.id as string | undefined,

@@ -7,7 +7,7 @@ export class APIError extends Error {
     public message: string,
     public status: number,
     public code?: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'APIError'
@@ -15,7 +15,7 @@ export class APIError extends Error {
 }
 
 // Predefined error types
-export const ValidationError = (message: string, details?: any) => 
+export const ValidationError = (message: string, details?: unknown) => 
   new APIError(message, 400, 'VALIDATION_ERROR', details)
 
 export const UnauthorizedError = (message: string = 'Unauthorized') => 
@@ -27,10 +27,10 @@ export const ForbiddenError = (message: string = 'Forbidden') =>
 export const NotFoundError = (message: string = 'Not found') => 
   new APIError(message, 404, 'NOT_FOUND')
 
-export const ConflictError = (message: string, details?: any) => 
+export const ConflictError = (message: string, details?: unknown) => 
   new APIError(message, 409, 'CONFLICT', details)
 
-export const InternalError = (message: string = 'Internal server error', details?: any) => 
+export const InternalError = (message: string = 'Internal server error', details?: unknown) => 
   new APIError(message, 500, 'INTERNAL_ERROR', details)
 
 // Helper to create error responses
@@ -131,7 +131,7 @@ export function validateParams<T>(
 }
 
 // Helper to create success responses
-export function createSuccessResponse(data?: any, status: number = 200): Response {
+export function createSuccessResponse(data?: unknown, status: number = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -141,7 +141,7 @@ export function createSuccessResponse(data?: any, status: number = 200): Respons
 }
 
 // Helper to handle Supabase errors
-export function handleSupabaseError(error: any, context?: string): never {
+export function handleSupabaseError(error: unknown, context?: string): never {
   console.error(`Supabase error${context ? ` in ${context}` : ''}:`, error)
   
   // Handle specific Supabase error codes
@@ -166,7 +166,7 @@ export function handleSupabaseError(error: any, context?: string): never {
 }
 
 // Wrapper for route handlers with error handling
-export function withErrorHandling<T extends any[]>(
+export function withErrorHandling<T extends unknown[]>(
   handler: (...args: T) => Promise<Response>
 ) {
   return async (...args: T): Promise<Response> => {
@@ -179,7 +179,7 @@ export function withErrorHandling<T extends any[]>(
 }
 
 // Helper to check authentication
-export async function requireAuth(supabase: any) {
+export async function requireAuth(supabase: unknown) {
   const { data: { user }, error } = await supabase.auth.getUser()
   
   if (error) {
@@ -195,8 +195,8 @@ export async function requireAuth(supabase: any) {
 
 // Helper to check team access
 export async function requireTeamAccess(
-  supabase: any,
-  user: any,
+  supabase: unknown,
+  user: unknown,
   teamCode: string
 ) {
   // Check if user is a coach for this team
@@ -223,8 +223,8 @@ export async function requireTeamAccess(
 
 // Helper to check lead coach access
 export async function requireLeadCoachAccess(
-  supabase: any,
-  user: any,
+  supabase: unknown,
+  user: unknown,
   teamCode: string
 ) {
   const { data: coachTeam, error } = await supabase

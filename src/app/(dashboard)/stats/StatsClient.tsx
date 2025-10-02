@@ -146,7 +146,7 @@ export default function StatsClient({ teams, players, statDefinitions, selectedT
         </div>
       ) : (
         <div className="space-y-6">
-          {players.map((player: any) => (
+          {players.map((player: Player) => (
             <PlayerStatCard 
               key={player.id} 
               player={player} 

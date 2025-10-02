@@ -125,7 +125,7 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const _getStatusColor = (status: string) => {
     return statusOptions.find(opt => opt.value === status)?.color || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
@@ -222,7 +222,7 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
 }
 
 // Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

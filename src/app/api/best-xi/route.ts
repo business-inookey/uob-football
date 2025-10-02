@@ -25,7 +25,8 @@ function parseFormationInput(input: string | Formation): Formation {
     return input
   }
   const parts = input.split('-').map(n => parseInt(n, 10))
-  let gk = 1, def = 4, mid = 3, wng = 0, st = 3
+  let gk = 1, def = 4, mid = 3, st = 3
+  const wng = 0
   if (parts.length === 3) {
     ;[def, mid, st] = parts
   } else if (parts.length === 4) {
@@ -44,7 +45,7 @@ async function postBestXI(request: Request) {
   })
 
   const teamCode = parsed.team
-  const formation = parseFormationInput(parsed.formation as any)
+  const formation = parseFormationInput(parsed.formation as BestXIPlayer[])
 
   const supabase = await createClient()
 
@@ -76,7 +77,7 @@ async function postBestXI(request: Request) {
 
   const speedMap = new Map<string, number>((speedRows ?? []).map(r => [r.player_id, r.value as unknown as number]))
 
-  let players: PlayerRow[] = (rows ?? []).map((r: any) => ({
+  let players: PlayerRow[] = (rows ?? []).map((r: BestXIPlayer) => ({
     id: r.players.id,
     full_name: r.players.full_name,
     primary_position: r.players.primary_position,
@@ -94,8 +95,8 @@ async function postBestXI(request: Request) {
 
     const existingIds = new Set(players.map(p => p.id));
     const additionalPlayers = (teamPlayers ?? [])
-      .filter((p: any) => !existingIds.has(p.id))
-      .map((p: any) => ({
+      .filter((p: BestXIPlayer) => !existingIds.has(p.id))
+      .map((p: BestXIPlayer) => ({
         id: p.id,
         full_name: p.full_name,
         primary_position: p.primary_position,

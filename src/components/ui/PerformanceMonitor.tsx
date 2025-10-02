@@ -18,7 +18,7 @@ export function PerformanceMonitor({
     const startTime = performance.now();
     
     // Monitor memory usage if available
-    const memoryInfo = (performance as any).memory;
+    const memoryInfo = (performance as PerformanceEntry).memory;
     
     const measureRender = () => {
       const endTime = performance.now();

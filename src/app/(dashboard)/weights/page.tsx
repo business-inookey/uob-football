@@ -34,7 +34,7 @@ async function getTeamWeights(teamCode: string): Promise<WeightRow[]> {
 
 export default async function WeightsPage({ searchParams }: { searchParams?: Promise<{ team?: string }> }) {
   // Determine role and available teams for the coach
-  const coach = await requireCoach();
+  // const coach = await requireCoach();
 
   // If lead, also compute lead-only flag
   let isLead = false;

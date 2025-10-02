@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function VideoClient({ teams, team, videoAssets }: { teams: Array<{ code: string; name: string }>; team: string; videoAssets: any[] }) {
+export default function VideoClient({ teams, team, videoAssets }: { teams: Array<{ code: string; name: string }>; team: string; videoAssets: VideoAsset[][] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedTeam, setSelectedTeam] = useState(team === 'all' ? teams[0]?.code || '' : team);
@@ -88,7 +88,7 @@ export default function VideoClient({ teams, team, videoAssets }: { teams: Array
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-blue-900">Advanced Video Analysis Coming Soon</h3>
             <p className="text-blue-800">
-              We're working on powerful video analysis features including automated player tracking, 
+              We&apos;re working on powerful video analysis features including automated player tracking, 
               performance insights, and tactical analysis. Stay tuned for updates!
             </p>
             <div className="flex items-center gap-2 text-sm text-blue-700">
@@ -117,7 +117,7 @@ export default function VideoClient({ teams, team, videoAssets }: { teams: Array
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videoAssets.map((asset: any) => (
+          {videoAssets.map((asset: VideoAsset) => (
             <VideoCard key={asset.id} asset={asset} teams={teams} />
           ))}
         </div>
@@ -217,12 +217,12 @@ function VideoThumbnailGenerator({ videoUrl, title }: { videoUrl: string; title:
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
         setThumbnailUrl(dataUrl);
       }
-    } catch (err) {
+    } catch (_err) {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [videoUrl, title]);
+  }, [videoUrl]);
 
   useEffect(() => {
     generateThumbnail();
@@ -288,11 +288,11 @@ function CreateVideoButton({ teams }: { teams: Array<{ code: string; name: strin
   );
 }
 
-function VideoCard({ asset, teams }: { asset: any; teams: Array<{ code: string; name: string }> }) {
+function VideoCard({ asset, teams }: { asset: VideoAsset; teams: Array<{ code: string; name: string }> }) {
   const [editing, setEditing] = useState(false);
   const thumb = getVideoThumbnail(asset.url);
   const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [_imageLoaded, setImageLoaded] = useState(false);
   
   const getProviderColor = (provider: string) => {
     const colors: Record<string, string> = {
@@ -416,7 +416,7 @@ function DeleteVideoButton({ id }: { id: string }) {
   );
 }
 
-function VideoDialog({ initial, teams, onClose }: { initial?: any; teams: Array<{ code: string; name: string }>; onClose: () => void }) {
+function VideoDialog({ initial, teams, onClose }: { initial?: VideoAsset; teams: Array<{ code: string; name: string }>; onClose: () => void }) {
   const router = useRouter();
   const [form, setForm] = useState({
     id: initial?.id as string | undefined,
@@ -438,7 +438,7 @@ function VideoDialog({ initial, teams, onClose }: { initial?: any; teams: Array<
     if (url && !/^https?:\/\//i.test(url)) {
       url = `https://${url}`;
     }
-    const payload: any = { ...form, title, url };
+    const payload: VideoAsset = { ...form, title, url };
     if (!payload.team2) {
       delete payload.team2;
     }

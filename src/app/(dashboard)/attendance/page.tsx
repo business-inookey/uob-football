@@ -15,13 +15,13 @@ async function getTeams() {
 async function getCoachTeams() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [] as any[];
+  if (!user) return [] as Team[][];
   const { data: coach } = await supabase
     .from('coaches')
     .select('id')
     .eq('profile_id', user.id)
     .single();
-  if (!coach) return [] as any[];
+  if (!coach) return [] as string[];
   const { data: coachTeam } = await supabase
     .from('coach_team')
     .select('role, teams(code, name)')

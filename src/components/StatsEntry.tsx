@@ -46,7 +46,7 @@ export default function PlayerStatCard({ player, statDefinitions, teamCode }: Pl
         if (res.ok) {
           const data = await res.json();
           const statsMap: Record<string, number> = {};
-          data.forEach((stat: any) => {
+          data.forEach((stat: Player[]) => {
             statsMap[stat.stat_key] = stat.value;
           });
           if (!ignore) {
@@ -234,7 +234,7 @@ function StatInput({
 }
 
 // Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

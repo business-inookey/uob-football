@@ -186,7 +186,7 @@ export default function AttendanceCalendar({
         <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((date, index) => {
             const status = getDayStatus(date);
-            const notes = getDayNotes(date);
+            const _notes = getDayNotes(date);
             const isCurrentMonthDay = isCurrentMonth(date);
             const isTodayDate = isToday(date);
             const dateStr = date.toISOString().split('T')[0];

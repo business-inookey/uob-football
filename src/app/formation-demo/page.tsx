@@ -4,7 +4,7 @@ import FormationSelect, { validateFormation, type Formation } from '@/components
 
 export default function FormationDemo() {
   const [formation, setFormation] = useState<Formation>({ gk: 1, def: 4, mid: 3, wng: 0, st: 3 });
-  const [presetFormations, setPresetFormations] = useState([
+  const [presetFormations, _setPresetFormations] = useState([
     { name: "4-3-3", formation: { gk: 1, def: 4, mid: 3, wng: 0, st: 3 } },
     { name: "4-4-2", formation: { gk: 1, def: 4, mid: 4, wng: 0, st: 2 } },
     { name: "3-5-2", formation: { gk: 1, def: 3, mid: 5, wng: 0, st: 2 } },

@@ -19,7 +19,7 @@ export type BestXIResult = {
   orderedXI: PlayerRow[]
 }
 
-function positionKey(pos: string): keyof BestXIResult {
+function _positionKey(pos: string): keyof BestXIResult {
   switch (pos) {
     case 'GK': return 'gk'
     case 'DEF': return 'def'
@@ -54,7 +54,7 @@ export function bestXI(players: PlayerRow[], formation: Formation): BestXIResult
     GK: [], DEF: [], MID: [], WNG: [], ST: []
   }
   for (const p of players) {
-    const key = (['GK','DEF','MID','WNG','ST'] as const).includes(p.primary_position as any)
+    const key = (['GK','DEF','MID','WNG','ST'] as const).includes(p.primary_position as BestXIPlayer)
       ? p.primary_position as 'GK'|'DEF'|'MID'|'WNG'|'ST'
       : 'MID'
     byPos[key].push(p)

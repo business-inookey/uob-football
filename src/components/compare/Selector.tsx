@@ -34,7 +34,7 @@ export default function CompareSelector({
     });
   };
 
-  const disabledSet = useMemo(() => new Set(selected.length >= 5 ? selected : []), [selected]);
+  const _disabledSet = useMemo(() => new Set(selected.length >= 5 ? selected : []), [selected]);
 
   const apply = () => {
     const idsParam = selected.join(",");

@@ -20,7 +20,7 @@ export default function AttendanceClient({ teams, initialTeam, initialDate }: At
   const searchParams = useSearchParams();
   const [selectedTeam, setSelectedTeam] = useState(initialTeam);
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -167,8 +167,8 @@ export default function AttendanceClient({ teams, initialTeam, initialDate }: At
           <div className="space-y-1">
             <h3 className="font-medium text-blue-900">How to use</h3>
             <p className="text-sm text-blue-800">
-              Click on the status buttons to mark each player's attendance. You can also add notes for each player. 
-              All changes are automatically saved. Use "Mark All Present" to quickly mark everyone as present.
+              Click on the status buttons to mark each player&apos;s attendance. You can also add notes for each player. 
+              All changes are automatically saved. Use &quot;Mark All Present&quot; to quickly mark everyone as present.
             </p>
           </div>
         </div>

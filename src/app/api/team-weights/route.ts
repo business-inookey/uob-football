@@ -40,7 +40,7 @@ async function postWeights(request: Request) {
   const { team_code, weights } = parsed
 
   // Ensure caller is lead for this team
-  const hasLeadForTeam = teams.some((t: any) => t.teams?.code === team_code || t.team_id)
+  const hasLeadForTeam = teams.some((t: TeamWeights) => t.teams?.code === team_code || t.team_id)
   if (!hasLeadForTeam) return new Response('Forbidden', { status: 403 })
 
   const supabase = await createClient()

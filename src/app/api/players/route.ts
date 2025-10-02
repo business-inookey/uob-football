@@ -14,7 +14,7 @@ async function getPlayers(request: Request) {
 
   console.log('API: teamCode =', teamCode, 'isLeadCoach =', isLeadCoach)
 
-  let players: any[] = []
+  let players: Player[][] = []
 
   // Query players based on team selection
   if (teamCode === 'all') {

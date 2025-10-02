@@ -7,7 +7,7 @@ type Row = { full_name: string; primary_position: string; current_team: string }
 export default function ImportPlayersPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [error, setError] = useState<string>("")
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<Player[]>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [dragActive, setDragActive] = useState(false)
@@ -275,8 +275,8 @@ export default function ImportPlayersPage() {
             <div className="text-sm text-blue-800 space-y-1">
               <p>Your CSV file must include the following headers:</p>
               <ul className="list-disc list-inside ml-4 space-y-1">
-                <li><code className="bg-blue-100 px-1 rounded">full_name</code> - Player's full name</li>
-                <li><code className="bg-blue-100 px-1 rounded">primary_position</code> - Player's position (e.g., GK, DEF, MID, FWD)</li>
+                <li><code className="bg-blue-100 px-1 rounded">full_name</code> - Player&apos;s full name</li>
+                <li><code className="bg-blue-100 px-1 rounded">primary_position</code> - Player&apos;s position (e.g., GK, DEF, MID, FWD)</li>
                 <li><code className="bg-blue-100 px-1 rounded">current_team</code> - Team code (e.g., 1s, 2s, 3s)</li>
               </ul>
               <p className="mt-2">Example CSV content:</p>

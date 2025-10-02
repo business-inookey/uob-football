@@ -17,7 +17,10 @@
     "test:rls": "vitest run src/test/rls",
     "test:unit": "vitest run src/test/unit",
     "test:accessibility": "vitest run src/test/accessibility",
-    "test:basic": "tsx src/test/run-basic-tests.ts"
+    "test:basic": "tsx src/test/run-basic-tests.ts",
+    "predeploy": "tsx scripts/predeploy.ts",
+    "seed:production": "tsx scripts/seed-production.ts",
+    "deploy:local": "tsx scripts/deploy-local.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -32,6 +35,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.2",
+    "execa": "^8.0.1",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "next-themes": "^0.4.6",
@@ -40,6 +44,7 @@
     "react-hook-form": "^7.63.0",
     "tailwind-merge": "^3.3.1",
     "tsx": "^4.20.6",
+    "yargs": "^17.7.2",
     "zod": "^4.1.11"
   },
   "devDependencies": {
@@ -53,6 +58,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/supertest": "^6.0.3",
+    "@types/yargs": "^17.0.32",
     "@vitest/ui": "^3.2.4",
     "axe-core": "^4.10.3",
     "eslint": "^9",

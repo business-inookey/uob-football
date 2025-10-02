@@ -5,11 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export default function MobileNav() {
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Show nav for any authenticated user; page-level guards enforce roles

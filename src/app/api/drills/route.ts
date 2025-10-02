@@ -29,7 +29,7 @@ async function postDrill(request: NextRequest) {
       const { team, drillName, notes } = CreateSessionSchema.parse(body);
       
       // Verify coach has access to this team via memberships
-      const hasAccess = Array.isArray(memberships) && memberships.some((m: any) => m.team_id === team);
+      const hasAccess = Array.isArray(memberships) && memberships.some((m: DrillSession) => m.team_id === team);
       if (!hasAccess) {
         return NextResponse.json({ error: 'Access denied to team' }, { status: 403 });
       }
@@ -66,7 +66,7 @@ async function postDrill(request: NextRequest) {
         handleSupabaseError(sessionErr, 'fetching drill session');
       }
 
-      const sessionAccess = Array.isArray(memberships) && memberships.some((m: any) => m.team_id === sessionRow.team_id);
+      const sessionAccess = Array.isArray(memberships) && memberships.some((m: DrillSession) => m.team_id === sessionRow.team_id);
       if (!sessionAccess) {
         return NextResponse.json({ error: 'Access denied to session' }, { status: 403 });
       }

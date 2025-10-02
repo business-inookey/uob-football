@@ -99,7 +99,7 @@ export default function WeightsClient({ teamCode, teams, defs, initialWeights, i
           <div className="space-y-1">
             <h3 className="font-medium text-blue-900">How weights work</h3>
             <p className="text-sm text-blue-800">
-              Weights adjust how much each statistic contributes to a player's composite score. 
+              Weights adjust how much each statistic contributes to a player&apos;s composite score. 
               Range: 0.5 (downweight) to 1.5 (upweight). Baseline is 1.0. 
               {!isLead && ' Only lead coaches can modify weights.'}
             </p>
@@ -237,7 +237,7 @@ function WeightsEditor({ teamCode, defs, initialWeights }: { teamCode: string; d
           const delta = r.weight - 1;
           const deltaPct = Math.round(delta * 100);
           const isPositive = delta > 0;
-          const isNegative = delta < 0;
+          const _isNegative = delta < 0;
           
           return (
             <div key={r.key} className="space-y-3">

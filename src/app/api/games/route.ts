@@ -12,7 +12,7 @@ async function getGames(request: Request) {
   let query = supabase
     .from('games')
     .select('id, kickoff_at, location, notes, home_team:home_team(name,code), away_team:away_team(name,code)')
-    .order('kickoff_at', { ascending: true }) as any
+    .order('kickoff_at', { ascending: true }) as Game[]
 
   if (teamCode && teamCode !== 'all') {
     // Join constraints handled by RLS; filter by team membership using team code

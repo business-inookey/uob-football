@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AnimatedButton } from '@/components/ui/AnimatedButton';
+// import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 export default function ButtonDemoPage() {
   const [isActive, setIsActive] = useState(false);

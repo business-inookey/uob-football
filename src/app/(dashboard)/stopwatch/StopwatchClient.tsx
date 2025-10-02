@@ -481,8 +481,8 @@ export default function StopwatchClient({ teams }: StopwatchClientProps) {
             <h3 className="font-medium text-blue-900">How to use the stopwatch</h3>
             <p className="text-sm text-blue-800">
               1. Select a team and drill name, then choose the players to time.<br/>
-              2. Click "Start Drill Session" to begin timing.<br/>
-              3. Click "Record Lap" when each player completes their lap.<br/>
+              2. Click &quot;Start Drill Session&quot; to begin timing.<br/>
+              3. Click &quot;Record Lap&quot; when each player completes their lap.<br/>
               4. The system will automatically move to the next player and update their stats.
             </p>
           </div>

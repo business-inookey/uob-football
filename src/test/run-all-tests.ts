@@ -34,7 +34,7 @@ async function runAllTests() {
       })
       console.log(`✅ ${suite.name} passed`)
       totalPassed++
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ ${suite.name} failed`)
       totalFailed++
     }
@@ -60,7 +60,7 @@ if (process.argv.includes('--coverage')) {
   console.log('📊 Running tests with coverage...')
   try {
     execSync('npm run test:coverage', { stdio: 'inherit' })
-  } catch (error) {
+  } catch (_error) {
     console.log('❌ Coverage tests failed')
     process.exit(1)
   }

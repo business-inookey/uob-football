@@ -6,7 +6,7 @@ export type DbError = {
   details?: string
 }
 
-export function handleDbError(error: any): DbError {
+export function handleDbError(error: unknown): DbError {
   if (error?.message) {
     return {
       message: error.message,

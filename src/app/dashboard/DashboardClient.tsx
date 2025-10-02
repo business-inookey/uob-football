@@ -5,16 +5,16 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function DashboardClient({ 
   profile, 
-  teams, 
+  _teams, 
   allTeams, 
   selectedTeam, 
   games 
 }: { 
-  profile: any; 
-  teams: any[]; 
+  profile: Game[]; 
+  teams: Game[][]; 
   allTeams: Array<{ code: string; name: string }>; 
   selectedTeam: string; 
-  games: any[] 
+  games: Game[][] 
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,7 +69,7 @@ export default function DashboardClient({
             Welcome, {profile.full_name}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Manage your team data and view this week's games
+            Manage your team data and view this week&apos;s games
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function DashboardClient({
       <div className="card p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-foreground">This Week's Games</h2>
+            <h2 className="text-2xl font-bold text-foreground">This Week&apos;s Games</h2>
             <p className="text-muted-foreground">{weekRange}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -113,7 +113,7 @@ export default function DashboardClient({
           </div>
         ) : (
           <div className="grid gap-4">
-            {games.map((game: any) => (
+            {games.map((game: Game) => (
               <GameCard key={game.id} game={game} />
             ))}
           </div>
@@ -123,7 +123,7 @@ export default function DashboardClient({
   );
 }
 
-function GameCard({ game }: { game: any }) {
+function GameCard({ game }: { game: Game }) {
   const kickoffDate = new Date(game.kickoff_at);
   const now = new Date();
   const isToday = kickoffDate.toDateString() === now.toDateString();
