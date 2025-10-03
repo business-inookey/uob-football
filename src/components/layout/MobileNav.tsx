@@ -105,7 +105,7 @@ export default function MobileNav() {
                 <p className="text-sm text-gray-500 truncate">{user?.email}</p>
               </div>
               
-              <div className="py-1 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+              <div className="py-1 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                   <AnimatedThemeToggler />
@@ -147,7 +147,7 @@ export default function MobileNav() {
                 <p className="text-sm text-gray-500 truncate">{user?.email}</p>
               </div>
               
-              <div className="py-1 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+              <div className="py-1 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                   <AnimatedThemeToggler />
