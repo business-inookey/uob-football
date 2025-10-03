@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     
     const team = body?.team || '1s'
     const formation = body?.formation || { gk: 1, def: 4, mid: 3, wng: 0, st: 3 }
-    let xi = body?.xi?.orderedXI as PlayerRow[]
+    const xi = body?.xi?.orderedXI as PlayerRow[]
 
     if (!body) {
       return new Response('No request body provided', { status: 400 })

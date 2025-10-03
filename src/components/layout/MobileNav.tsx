@@ -9,7 +9,7 @@ export default function MobileNav() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<any>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Show nav for any authenticated user; page-level guards enforce roles

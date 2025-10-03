@@ -5,10 +5,10 @@ import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive>
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ className, ...props }, ref) => (
-  <CheckboxPrimitive
+  <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
       "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
@@ -21,8 +21,8 @@ const Checkbox = React.forwardRef<
     >
       <Check className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive>
+  </CheckboxPrimitive.Root>
 ))
-Checkbox.displayName = CheckboxPrimitive.displayName
+Checkbox.displayName = CheckboxPrimitive.Root.displayName
 
 export { Checkbox }

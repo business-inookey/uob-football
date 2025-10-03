@@ -78,7 +78,7 @@ export default async function StatsPage({ searchParams }: { searchParams?: Promi
 
   return (
     <StatsClient 
-      teams={teams}
+      teams={teams as any}
       players={players}
       statDefinitions={statDefinitions}
       selectedTeam={teamCode}
