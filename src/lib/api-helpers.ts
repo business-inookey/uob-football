@@ -145,24 +145,24 @@ export function handleSupabaseError(error: unknown, context?: string): never {
   console.error(`Supabase error${context ? ` in ${context}` : ''}:`, error)
   
   // Handle specific Supabase error codes
-  if (error?.code === 'PGRST116') {
+  if ((error as any)?.code === 'PGRST116') {
     throw NotFoundError('Resource not found')
   }
   
-  if (error?.code === '23505') {
+  if ((error as any)?.code === '23505') {
     throw ConflictError('Resource already exists')
   }
   
-  if (error?.code === '23503') {
+  if ((error as any)?.code === '23503') {
     throw ConflictError('Referenced resource does not exist')
   }
   
-  if (error?.code === '42501') {
+  if ((error as any)?.code === '42501') {
     throw ForbiddenError('Insufficient permissions')
   }
   
   // Generic database error
-  throw InternalError(`Database error: ${error?.message || 'Unknown error'}`)
+  throw InternalError(`Database error: ${(error as any)?.message || 'Unknown error'}`)
 }
 
 // Wrapper for route handlers with error handling
@@ -179,7 +179,7 @@ export function withErrorHandling<T extends unknown[]>(
 }
 
 // Helper to check authentication
-export async function requireAuth(supabase: unknown) {
+export async function requireAuth(supabase: any) {
   const { data: { user }, error } = await supabase.auth.getUser()
   
   if (error) {
@@ -195,8 +195,8 @@ export async function requireAuth(supabase: unknown) {
 
 // Helper to check team access
 export async function requireTeamAccess(
-  supabase: unknown,
-  user: unknown,
+  supabase: any,
+  user: any,
   teamCode: string
 ) {
   // Check if user is a coach for this team
@@ -223,8 +223,8 @@ export async function requireTeamAccess(
 
 // Helper to check lead coach access
 export async function requireLeadCoachAccess(
-  supabase: unknown,
-  user: unknown,
+  supabase: any,
+  user: any,
   teamCode: string
 ) {
   const { data: coachTeam, error } = await supabase

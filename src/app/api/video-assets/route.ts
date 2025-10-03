@@ -13,7 +13,7 @@ async function getVideoAssets(request: Request) {
   let query = serviceSupabase
     .from('video_assets')
     .select('id, title, url, provider, meta, created_at, team:team_id(code,name)')
-    .order('created_at', { ascending: false }) as VideoAsset[]
+    .order('created_at', { ascending: false })
 
   if (teamCode && teamCode !== 'all') {
     // Get team id from code
@@ -65,8 +65,8 @@ async function postVideoAsset(request: Request) {
       .update({
         title: parsed.title,
         url: parsed.url,
-        provider: parsed.provider || 'veo3',
-        meta: parsed.meta || {},
+        provider: (parsed as any).provider || 'veo3',
+        meta: (parsed as any).meta || {},
       })
       .eq('id', parsed.id)
     if (error) {
@@ -75,13 +75,13 @@ async function postVideoAsset(request: Request) {
     return createSuccessResponse({ ok: true, id: parsed.id })
   } else {
     // Insert
-    const rows: VideoAsset[] = [
+    const rows: any[] = [
       {
         team_id: team.id,
         title: parsed.title,
         url: parsed.url,
-        provider: parsed.provider || 'veo3',
-        meta: parsed.meta || {},
+        provider: (parsed as any).provider || 'veo3',
+        meta: (parsed as any).meta || {},
         created_by: profile.id,
       },
     ]
@@ -92,7 +92,7 @@ async function postVideoAsset(request: Request) {
     if (error) {
       handleSupabaseError(error, 'creating video asset')
     }
-    const ids = Array.isArray(data) ? data.map((r: VideoAsset) => r.id) : (data?.id ? [data.id] : [])
+    const ids = Array.isArray(data) ? data.map((r: any) => r.id) : ((data as any)?.id ? [(data as any).id] : [])
     return createSuccessResponse({ ok: true, ids })
   }
 }

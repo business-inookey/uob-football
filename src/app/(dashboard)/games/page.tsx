@@ -65,7 +65,7 @@ export default async function GamesPage({ searchParams }: { searchParams?: Promi
   const games = await getGames(team, month)
 
   return (
-    <GamesClient teams={teams} team={team} month={month} games={games} />
+    <GamesClient teams={teams} team={team} month={month} games={games as any} />
   );
 }
 

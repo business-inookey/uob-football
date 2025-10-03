@@ -19,16 +19,7 @@ export type BestXIResult = {
   orderedXI: PlayerRow[]
 }
 
-function _positionKey(pos: string): keyof BestXIResult {
-  switch (pos) {
-    case 'GK': return 'gk'
-    case 'DEF': return 'def'
-    case 'MID': return 'mid'
-    case 'WNG': return 'wng'
-    case 'ST': return 'st'
-    default: return 'mid'
-  }
-}
+// Removed unused _positionKey function
 
 function takeTop(players: PlayerRow[], count: number): PlayerRow[] {
   if (count <= 0) return []

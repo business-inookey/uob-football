@@ -166,7 +166,7 @@ export const BatchResult = z.object({
   results: z.array(z.object({
     status: z.enum(['inserted', 'updated', 'skipped']),
     reason: z.string().optional()
-  }).and(z.record(z.any()))) // Allow additional fields
+  }).and(z.record(z.string(), z.any()))) // Allow additional fields
 })
 
 // Type exports

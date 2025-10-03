@@ -27,12 +27,12 @@ export const testConfig = {
   }
 }
 
-export const createTestSupabaseClient = () => {
-  const { createClient } = import('@supabase/supabase-js')
+export const createTestSupabaseClient = async () => {
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(testConfig.supabaseUrl, testConfig.supabaseAnonKey)
 }
 
-export const createTestServiceClient = () => {
-  const { createClient } = import('@supabase/supabase-js')
+export const createTestServiceClient = async () => {
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(testConfig.supabaseUrl, testConfig.supabaseServiceKey)
 }

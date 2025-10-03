@@ -112,7 +112,6 @@ export default function ButtonDemoPage() {
             </Button>
             
             <Button 
-              size="md"
               dataTitle="Medium Button"
               dataText="Medium Action..."
               dataStart="Medium Done!"

@@ -3,7 +3,16 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function GamesClient({ teams, team, month, games }: { teams: Array<{ code: string; name: string }>; team: string; month: string; games: Game[][] }) {
+interface Game {
+  id: string;
+  home_teams?: { code: string; name: string } | null;
+  away_teams?: { code: string; name: string } | null;
+  kickoff_at: string;
+  location?: string;
+  notes?: string;
+}
+
+export default function GamesClient({ teams, team, month, games }: { teams: Array<{ code: string; name: string }>; team: string; month: string; games: Game[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState({ team, month });

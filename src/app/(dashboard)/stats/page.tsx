@@ -42,13 +42,13 @@ async function getStatDefinitions() {
 async function getCoachTeams() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [] as Team[][];
+  if (!user) return [];
   const { data: coach } = await supabase
     .from('coaches')
     .select('id')
     .eq('profile_id', user.id)
     .single();
-  if (!coach) return [] as Player[][];
+  if (!coach) return [];
   const { data: coachTeam } = await supabase
     .from('coach_team')
     .select('role, teams(code, name)')

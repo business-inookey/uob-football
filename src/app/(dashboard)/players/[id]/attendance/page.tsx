@@ -82,7 +82,7 @@ export default async function PlayerAttendancePage({
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-lg font-bold text-primary">
-              {player.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {player.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">

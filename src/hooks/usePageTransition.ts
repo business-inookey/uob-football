@@ -20,9 +20,9 @@ export function usePageTransition() {
     await new Promise(resolve => setTimeout(resolve, delay));
     
     if (options?.replace) {
-      router.replace(href, { scroll: options.scroll ?? true });
+      router.replace(href, { scroll: options?.scroll ?? true });
     } else {
-      router.push(href, { scroll: options.scroll ?? true });
+      router.push(href, { scroll: options?.scroll ?? true });
     }
     
     // Reset transition state after navigation

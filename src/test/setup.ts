@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom'
-import { beforeAll, afterAll, afterEach } from 'vitest'
-import { createClient } from '@supabase/supabase-js'
+import { beforeAll, afterAll, afterEach, vi } from 'vitest'
 import dotenv from 'dotenv'
 
 // Load environment variables

@@ -3,7 +3,18 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function VideoClient({ teams, team, videoAssets }: { teams: Array<{ code: string; name: string }>; team: string; videoAssets: VideoAsset[][] }) {
+interface VideoAsset {
+  id: string;
+  title: string;
+  url: string;
+  provider: string;
+  meta: any;
+  team_id: string;
+  created_at: string;
+  teams?: { id: string; code: string; name: string } | null;
+}
+
+export default function VideoClient({ teams, team, videoAssets }: { teams: Array<{ code: string; name: string }>; team: string; videoAssets: VideoAsset[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedTeam, setSelectedTeam] = useState(team === 'all' ? teams[0]?.code || '' : team);
@@ -438,7 +449,7 @@ function VideoDialog({ initial, teams, onClose }: { initial?: VideoAsset; teams:
     if (url && !/^https?:\/\//i.test(url)) {
       url = `https://${url}`;
     }
-    const payload: VideoAsset = { ...form, title, url };
+    const payload: any = { ...form, title, url };
     if (!payload.team2) {
       delete payload.team2;
     }

@@ -7,11 +7,11 @@ export type DbError = {
 }
 
 export function handleDbError(error: unknown): DbError {
-  if (error?.message) {
+  if ((error as any)?.message) {
     return {
-      message: error.message,
-      code: error.code,
-      details: error.details,
+      message: (error as any).message,
+      code: (error as any).code,
+      details: (error as any).details,
     }
   }
   

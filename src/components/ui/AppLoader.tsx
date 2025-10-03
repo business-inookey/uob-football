@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { CustomLoaderCSS } from './CustomLoader';
 
 interface AppLoaderProps {
@@ -16,9 +17,11 @@ export function AppLoader({
         {showLogo && (
           <div className="space-y-4">
             <div className="w-16 h-16 mx-auto rounded-2xl overflow-hidden flex items-center justify-center">
-              <img 
+              <Image 
                 src="/GameLens Logo.png" 
                 alt="GameLens Logo" 
+                width={64}
+                height={64}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -46,9 +49,11 @@ export function InitialAppLoader() {
         {/* Logo */}
         <div className="space-y-4">
           <div className="w-20 h-20 mx-auto rounded-3xl overflow-hidden flex items-center justify-center shadow-xl">
-            <img 
+            <Image 
               src="/GameLens Logo.png" 
               alt="GameLens Logo" 
+              width={80}
+              height={80}
               className="w-full h-full object-contain"
             />
           </div>

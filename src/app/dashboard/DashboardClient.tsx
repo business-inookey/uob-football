@@ -5,16 +5,14 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function DashboardClient({ 
   profile, 
-  _teams, 
   allTeams, 
   selectedTeam, 
   games 
 }: { 
-  profile: Game[]; 
-  teams: Game[][]; 
+  profile: any; 
   allTeams: Array<{ code: string; name: string }>; 
   selectedTeam: string; 
-  games: Game[][] 
+  games: any[] 
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -113,7 +111,7 @@ export default function DashboardClient({
           </div>
         ) : (
           <div className="grid gap-4">
-            {games.map((game: Game) => (
+            {games.map((game: any) => (
               <GameCard key={game.id} game={game} />
             ))}
           </div>
@@ -123,7 +121,7 @@ export default function DashboardClient({
   );
 }
 
-function GameCard({ game }: { game: Game }) {
+function GameCard({ game }: { game: any }) {
   const kickoffDate = new Date(game.kickoff_at);
   const now = new Date();
   const isToday = kickoffDate.toDateString() === now.toDateString();

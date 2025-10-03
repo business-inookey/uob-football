@@ -12,9 +12,6 @@ export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const _handleStart = () => setIsLoading(true);
-    const _handleComplete = () => setIsLoading(false);
-
     // Listen for route changes
     const timer = setTimeout(() => {
       setIsLoading(false);

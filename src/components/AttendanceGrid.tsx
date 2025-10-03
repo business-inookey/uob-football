@@ -222,7 +222,7 @@ export default function AttendanceGrid({ players, teamCode, date }: AttendanceGr
 }
 
 // Debounce utility function
-function debounce<T extends (...args: unknown[]) => unknown>(
+function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

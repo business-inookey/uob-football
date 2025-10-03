@@ -37,7 +37,7 @@ describe('Attendance RLS Tests', () => {
         full_name: 'Test Player',
         primary_position: 'MID',
         current_team: '1s'
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -52,7 +52,7 @@ describe('Attendance RLS Tests', () => {
         id: '11111111-1111-1111-1111-111111111111',
         full_name: 'Test Coach',
         role: 'lead_coach'
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -61,16 +61,16 @@ describe('Attendance RLS Tests', () => {
       return
     }
 
-    testTeamId = team.id
-    testPlayerId = player.id
-    testCoachId = coach.id
+    testTeamId = (team as any).id
+    testPlayerId = (player as any).id
+    testCoachId = (coach as any).id
 
     // Create coach record
     const { data: coachRecord, error: coachRecordError } = await serviceClient
       .from('coaches')
       .insert({
         profile_id: testCoachId
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -83,10 +83,10 @@ describe('Attendance RLS Tests', () => {
     await serviceClient
       .from('coach_team')
       .insert({
-        coach_id: coachRecord.id,
+        coach_id: (coachRecord as any).id,
         team_id: testTeamId,
         role: 'lead_coach'
-      })
+      } as any)
   })
 
   afterEach(async () => {
@@ -104,8 +104,8 @@ describe('Attendance RLS Tests', () => {
         .single()
       
       if (coachRecord) {
-        await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', coachRecord.id)
-        await serviceClient.from('coaches').delete().eq('id', coachRecord.id)
+        await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', (coachRecord as any).id)
+        await serviceClient.from('coaches').delete().eq('id', (coachRecord as any).id)
       }
     }
     if (testCoachId) {
@@ -125,7 +125,7 @@ describe('Attendance RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
@@ -136,7 +136,7 @@ describe('Attendance RLS Tests', () => {
         date: '2024-01-15',
         status: 'present',
         recorded_by: testCoachId
-      })
+      } as any)
       .select()
 
     expect(error).toBeNull()
@@ -153,7 +153,7 @@ describe('Attendance RLS Tests', () => {
         date: '2024-01-15',
         status: 'present',
         recorded_by: '00000000-0000-0000-0000-000000000000'
-      })
+      } as any)
       .select()
 
     expect(error).toBeDefined()
@@ -171,7 +171,7 @@ describe('Attendance RLS Tests', () => {
         date: '2024-01-15',
         status: 'present',
         recorded_by: testCoachId
-      })
+      } as any)
 
     // Mock authenticated user
     const mockAuth = {
@@ -179,7 +179,7 @@ describe('Attendance RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
@@ -210,11 +210,11 @@ describe('Attendance RLS Tests', () => {
       .from('attendance')
       .insert({
         player_id: testPlayerId,
-        team_id: otherTeam!.id,
+        team_id: (otherTeam as any)!.id,
         date: '2024-01-15',
         status: 'present',
         recorded_by: 'other-coach'
-      })
+      } as any)
 
     // Mock authenticated user (our test coach)
     const mockAuth = {
@@ -222,13 +222,13 @@ describe('Attendance RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
       .from('attendance')
       .select('*')
-      .eq('team_id', otherTeam!.id)
+      .eq('team_id', (otherTeam as any)!.id)
 
     expect(error).toBeNull()
     expect(data).toBeDefined()
@@ -236,7 +236,7 @@ describe('Attendance RLS Tests', () => {
 
     // Clean up (but not the existing team)
     if (otherTeam) {
-      await serviceClient.from('attendance').delete().eq('team_id', otherTeam.id)
+      await serviceClient.from('attendance').delete().eq('team_id', (otherTeam as any).id)
     }
   })
 
@@ -250,7 +250,7 @@ describe('Attendance RLS Tests', () => {
         date: '2024-01-15',
         status: 'present',
         recorded_by: testCoachId
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -260,13 +260,13 @@ describe('Attendance RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
       .from('attendance')
       .update({ status: 'late' })
-      .eq('id', attendance!.id)
+      .eq('id', (attendance as any)!.id)
       .select()
 
     expect(error).toBeNull()

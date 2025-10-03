@@ -38,7 +38,7 @@ describe('Team Weights RLS Tests', () => {
         id: '22222222-2222-2222-2222-222222222222',
         full_name: 'Lead Coach',
         role: 'lead_coach'
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -54,7 +54,7 @@ describe('Team Weights RLS Tests', () => {
         id: '33333333-3333-3333-3333-333333333333',
         full_name: 'Assistant Coach',
         role: 'coach'
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -63,16 +63,16 @@ describe('Team Weights RLS Tests', () => {
       return
     }
 
-    testTeamId = team.id
-    leadCoachId = leadCoach.id
-    assistantCoachId = assistantCoach.id
+    testTeamId = (team as any).id
+    leadCoachId = (leadCoach as any).id
+    assistantCoachId = (assistantCoach as any).id
 
     // Create coach records
     const { data: leadCoachRecord, error: leadCoachRecordError } = await serviceClient
       .from('coaches')
       .insert({
         profile_id: leadCoachId
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -85,7 +85,7 @@ describe('Team Weights RLS Tests', () => {
       .from('coaches')
       .insert({
         profile_id: assistantCoachId
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -99,16 +99,16 @@ describe('Team Weights RLS Tests', () => {
       .from('coach_team')
       .insert([
         {
-          coach_id: leadCoachRecord.id,
+          coach_id: (leadCoachRecord as any).id,
           team_id: testTeamId,
           role: 'lead_coach'
         },
         {
-          coach_id: assistantCoachRecord.id,
+          coach_id: (assistantCoachRecord as any).id,
           team_id: testTeamId,
           role: 'coach'
         }
-      ])
+      ] as any)
   })
 
   afterEach(async () => {
@@ -125,8 +125,8 @@ describe('Team Weights RLS Tests', () => {
           .single()
         
         if (leadCoachRecord) {
-          await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', leadCoachRecord.id)
-          await serviceClient.from('coaches').delete().eq('id', leadCoachRecord.id)
+          await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', (leadCoachRecord as any).id)
+          await serviceClient.from('coaches').delete().eq('id', (leadCoachRecord as any).id)
         }
       }
       
@@ -138,8 +138,8 @@ describe('Team Weights RLS Tests', () => {
           .single()
         
         if (assistantCoachRecord) {
-          await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', assistantCoachRecord.id)
-          await serviceClient.from('coaches').delete().eq('id', assistantCoachRecord.id)
+          await serviceClient.from('coach_team').delete().eq('team_id', testTeamId).eq('coach_id', (assistantCoachRecord as any).id)
+          await serviceClient.from('coaches').delete().eq('id', (assistantCoachRecord as any).id)
         }
       }
     }
@@ -162,7 +162,7 @@ describe('Team Weights RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
@@ -171,7 +171,7 @@ describe('Team Weights RLS Tests', () => {
         team_id: testTeamId,
         stat_key: 'pace',
         weight: 1.2
-      })
+      } as any)
       .select()
 
     expect(error).toBeNull()
@@ -186,7 +186,7 @@ describe('Team Weights RLS Tests', () => {
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
@@ -195,7 +195,7 @@ describe('Team Weights RLS Tests', () => {
         team_id: testTeamId,
         stat_key: 'pace',
         weight: 1.2
-      })
+      } as any)
       .select()
 
     expect(error).toBeDefined()
@@ -211,20 +211,20 @@ describe('Team Weights RLS Tests', () => {
         team_id: testTeamId,
         stat_key: 'pace',
         weight: 1.0
-      })
+      } as any)
 
     const mockAuth = {
       getUser: () => Promise.resolve({ data: { user: { id: leadCoachId } }, error: null })
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
       .from('team_weights')
       .update({ weight: 1.5 })
-      .eq('team_id', testTeamId)
+      .eq('team_id', testTeamId!)
       .eq('stat_key', 'pace')
       .select()
 
@@ -241,20 +241,20 @@ describe('Team Weights RLS Tests', () => {
         team_id: testTeamId,
         stat_key: 'pace',
         weight: 1.0
-      })
+      } as any)
 
     const mockAuth = {
       getUser: () => Promise.resolve({ data: { user: { id: assistantCoachId } }, error: null })
     }
     
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: mockAuth
+      auth: mockAuth as any
     })
 
     const { data, error } = await authenticatedClient
       .from('team_weights')
       .update({ weight: 1.5 })
-      .eq('team_id', testTeamId)
+      .eq('team_id', testTeamId!)
       .eq('stat_key', 'pace')
       .select()
 
@@ -270,7 +270,7 @@ describe('Team Weights RLS Tests', () => {
       .insert([
         { team_id: testTeamId, stat_key: 'pace', weight: 1.2 },
         { team_id: testTeamId, stat_key: 'stamina', weight: 0.8 }
-      ])
+      ] as any)
 
     // Test lead coach access
     const leadAuth = {
@@ -278,13 +278,13 @@ describe('Team Weights RLS Tests', () => {
     }
     
     const leadClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: leadAuth
+      auth: leadAuth as any
     })
 
     const { data: leadData, error: leadError } = await leadClient
       .from('team_weights')
       .select('*')
-      .eq('team_id', testTeamId)
+      .eq('team_id', testTeamId!)
 
     expect(leadError).toBeNull()
     expect(leadData).toBeDefined()
@@ -296,13 +296,13 @@ describe('Team Weights RLS Tests', () => {
     }
     
     const assistantClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: assistantAuth
+      auth: assistantAuth as any
     })
 
     const { data: assistantData, error: assistantError } = await assistantClient
       .from('team_weights')
       .select('*')
-      .eq('team_id', testTeamId)
+      .eq('team_id', testTeamId!)
 
     expect(assistantError).toBeNull()
     expect(assistantData).toBeDefined()
@@ -313,7 +313,7 @@ describe('Team Weights RLS Tests', () => {
     const { data, error } = await anonClient
       .from('team_weights')
       .select('*')
-      .eq('team_id', testTeamId)
+      .eq('team_id', testTeamId!)
 
     expect(error).toBeDefined()
     expect(error!.message).toContain('row-level security policy')

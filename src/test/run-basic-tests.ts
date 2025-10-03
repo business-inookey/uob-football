@@ -26,7 +26,7 @@ async function runBasicTests() {
       })
       console.log(`✅ ${suite.name} passed`)
       totalPassed++
-    } catch (_error) {
+    } catch {
       console.log(`❌ ${suite.name} failed`)
       totalFailed++
     }

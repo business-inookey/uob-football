@@ -77,6 +77,6 @@ export default async function VideoPage({ searchParams }: { searchParams?: Promi
   const videoAssets = await getVideoAssets(team);
 
   return (
-    <VideoClient teams={teams} team={team} videoAssets={videoAssets} />
+    <VideoClient teams={teams} team={team} videoAssets={videoAssets as any} />
   );
 }

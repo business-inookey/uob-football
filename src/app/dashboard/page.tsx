@@ -68,7 +68,6 @@ export default async function DashboardPage({ searchParams }: { searchParams?: P
   return (
     <DashboardClient 
       profile={profile} 
-      teams={teams} 
       allTeams={allTeams}
       selectedTeam={team}
       games={games}

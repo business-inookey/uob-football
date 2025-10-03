@@ -7,7 +7,7 @@ type Row = { full_name: string; primary_position: string; current_team: string }
 export default function ImportPlayersPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [error, setError] = useState<string>("")
-  const [result, setResult] = useState<Player[]>(null)
+  const [result, setResult] = useState<any>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [dragActive, setDragActive] = useState(false)

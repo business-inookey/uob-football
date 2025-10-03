@@ -30,7 +30,7 @@ export default function CompareClient({ teams, initialTeam, initialSelectedIds }
   const [selectedTeam, setSelectedTeam] = useState(initialTeam);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds.slice(0, 5));
-  const [composite, setComposite] = useState<Player[]>(null);
+  const [composite, setComposite] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
