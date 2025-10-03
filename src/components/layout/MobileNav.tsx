@@ -99,13 +99,13 @@ export default function MobileNav() {
 
           {/* User Dropdown Menu */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50">
+            <div className="absolute right-0 mt-2 w-64 max-h-[80vh] bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200/50">
                 <p className="text-sm font-medium text-gray-900">Signed in as</p>
                 <p className="text-sm text-gray-500 truncate">{user?.email}</p>
               </div>
               
-              <div className="py-1">
+              <div className="py-1 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                   <AnimatedThemeToggler />
@@ -141,13 +141,13 @@ export default function MobileNav() {
 
           {/* Mobile User Dropdown */}
           {showUserMenu && (
-            <div className="absolute bottom-16 right-0 w-64 bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50">
+            <div className="absolute bottom-16 right-0 w-64 max-h-[70vh] bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200/50">
                 <p className="text-sm font-medium text-gray-900">Signed in as</p>
                 <p className="text-sm text-gray-500 truncate">{user?.email}</p>
               </div>
               
-              <div className="py-1">
+              <div className="py-1 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                   <AnimatedThemeToggler />
